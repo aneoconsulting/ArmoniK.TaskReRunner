@@ -24,7 +24,20 @@ namespace ArmoniK.TaskReRunner;
 /// </summary>
 internal class AgentStorage
 {
-  public readonly HashSet<string>                        NotifiedResults = new();
-  public          ConcurrentDictionary<string, Result>   Results         = new();
-  public          ConcurrentDictionary<string, TaskData> Tasks           = new();
+  /// <summary>
+  ///   The data obtained through the notified result call. This set contains the IDs of the results that have been notified.
+  /// </summary>
+  public readonly HashSet<string> NotifiedResults = new();
+
+
+  /// <summary>
+  ///   The data obtained through the CreateResult or CreateMetaDataResult call. This dictionary stores results keyed by
+  ///   their unique IDs.
+  /// </summary>
+  public ConcurrentDictionary<string, Result> Results = new();
+
+  /// <summary>
+  ///   The data obtained through the SubmitTask call. This dictionary stores task data keyed by their unique task IDs.
+  /// </summary>
+  public ConcurrentDictionary<string, TaskData> Tasks = new();
 }
