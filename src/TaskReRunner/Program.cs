@@ -164,7 +164,7 @@ internal static class Program
                        TaskOptions = taskOptions,
                      });
 
-      logger_.LogInformation("First Task Data: {toProcess}",
+      logger_.LogInformation("Task Data: {toProcess}",
                              toProcess);
     }
 
