@@ -176,27 +176,31 @@ internal static class Program
     var i = 0;
     foreach (var result in storage.NotifiedResults)
     {
-      var byteArray = File.ReadAllBytes(Path.Combine(folder,
-                                                     result));
-      logger_.LogInformation("Notified result Data : {str}",
-                             byteArray);
-      logger_.LogInformation("Notified result Id{i}: {res}",
+      logger_.LogInformation("Notified result{i} Id: {res}",
                              i,
                              result);
+      var byteArray = File.ReadAllBytes(Path.Combine(folder,
+                                                     result));
+      logger_.LogInformation("Notified result{i} Data : {str}",
+                             i,
+                             byteArray);
       i++;
     }
 
-    logger_.LogInformation("results : {results}",
-                           storage.Results);
     foreach (var result in storage.Results)
     {
       var str = result.Value.Data;
+      logger_.LogInformation("Created Result MetaData : {result}",
+                             result);
       logger_.LogInformation("Create Result Data : {str}",
                              str);
     }
 
-    logger_.LogInformation("Submitted Tasks Data : {results}",
-                           storage.Tasks);
+    foreach (var task in storage.Tasks)
+    {
+      logger_.LogInformation("Submitted Task Data : {task}",
+                             task.Value);
+    }
 
     File.WriteAllBytesAsync(Path.Combine(folder,
                                          dd1),

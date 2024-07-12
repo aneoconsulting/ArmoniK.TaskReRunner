@@ -28,39 +28,14 @@ namespace ArmoniK.TaskReRunner;
 public record ProcessData
 {
   /// <summary>
-  ///   Gets or init the communication token required for the process. Required.
-  /// </summary>
-  public required string CommunicationToken { get; init; }
-
-  /// <summary>
-  ///   Gets or init the payload identifier. Required.
-  /// </summary>
-  public required string PayloadId { get; init; }
-
-  /// <summary>
   ///   Gets or sets the session identifier. Required.
   /// </summary>
   public required string SessionId { get; init; }
 
   /// <summary>
-  ///   Gets or sets the configuration settings for the process. Required.
+  ///   Gets or init the payload identifier. Required.
   /// </summary>
-  public required Configuration Configuration { get; init; }
-
-  /// <summary>
-  ///   Gets the list of data dependencies required for the process.
-  /// </summary>
-  public ICollection<string> DataDependencies { get; } = [];
-
-  /// <summary>
-  ///   Gets or sets the folder location for storing data. Required.
-  /// </summary>
-  public required string DataFolder { get; init; }
-
-  /// <summary>
-  ///   Gets the list of expected output keys.
-  /// </summary>
-  public ICollection<string> ExpectedOutputKeys { get; } = [];
+  public required string PayloadId { get; init; }
 
   /// <summary>
   ///   Gets or sets the task identifier. Required.
@@ -71,4 +46,29 @@ public record ProcessData
   ///   Gets or sets the task options for the process. Required and nullable.
   /// </summary>
   public required TaskOptions? TaskOptions { get; init; }
+
+  /// <summary>
+  ///   Gets the list of data dependencies required for the process.
+  /// </summary>
+  public ICollection<string> DataDependencies { get; } = new List<string>();
+
+  /// <summary>
+  ///   Gets the list of expected output keys.
+  /// </summary>
+  public ICollection<string> ExpectedOutputKeys { get; } = new List<string>();
+
+  /// <summary>
+  ///   Gets or init the communication token required for the process. Required.
+  /// </summary>
+  public required string CommunicationToken { get; init; }
+
+  /// <summary>
+  ///   Gets or sets the configuration settings for the process. Required.
+  /// </summary>
+  public required Configuration Configuration { get; init; }
+
+  /// <summary>
+  ///   Gets or sets the folder location for storing data. Required.
+  /// </summary>
+  public required string DataFolder { get; init; }
 }

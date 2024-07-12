@@ -26,6 +26,16 @@ namespace ArmoniK.TaskReRunner;
 public record TaskData
 {
   /// <summary>
+  ///   Gets or init the task identifier. Required.
+  /// </summary>
+  public required string TaskId { get; init; }
+
+  /// <summary>
+  ///   Gets or init the payload identifier. Required.
+  /// </summary>
+  public required string PayloadId { get; init; }
+
+  /// <summary>
   ///   Gets the list of data dependencies required for the process.
   /// </summary>
   public ICollection<string> DataDependencies { get; init; } = new List<string>();
@@ -34,14 +44,4 @@ public record TaskData
   ///   Gets the list of expected output keys.
   /// </summary>
   public ICollection<string> ExpectedOutputKeys { get; init; } = new List<string>();
-
-  /// <summary>
-  ///   Gets or init the payload identifier. Required.
-  /// </summary>
-  public required string PayloadId { get; init; }
-
-  /// <summary>
-  ///   Gets or init the task identifier. Required.
-  /// </summary>
-  public required string TaskId { get; init; }
 }
