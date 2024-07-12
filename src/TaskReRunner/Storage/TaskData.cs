@@ -20,18 +20,17 @@ namespace ArmoniK.TaskReRunner;
 
 /// <summary>
 ///   Represents task data with its data dependencies, expected output keys, payload ID, and task ID.
-///   Required properties: PayloadId, TaskId.
-///   Optional properties: DataDependencies, ExpectedOutputKeys.
+///   Properties: PayloadId, TaskId, DataDependencies, ExpectedOutputKeys.
 /// </summary>
 public record TaskData
 {
   /// <summary>
-  ///   Gets or init the task identifier. Required.
+  ///   Gets or init the task identifier.
   /// </summary>
   public required string TaskId { get; init; }
 
   /// <summary>
-  ///   Gets or init the payload identifier. Required.
+  ///   Gets or init the payload identifier.
   /// </summary>
   public required string PayloadId { get; init; }
 
