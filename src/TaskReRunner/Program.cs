@@ -201,9 +201,5 @@ internal static class Program
       logger_.LogInformation("Submitted Task Data : {task}",
                              task.Value);
     }
-
-    File.WriteAllBytesAsync(Path.Combine(folder,
-                                         dd1),
-                            dd1Bytes);
   }
 }
