@@ -107,15 +107,21 @@ internal class ReRunnerAgent : Agent.AgentBase
                                            var resultId = Guid.NewGuid()
                                                               .ToString();
 
-                                           return new Result
-                                                  {
-                                                    ResultId  = resultId,
-                                                    Name      = rc.Name,
-                                                    Status    = ResultStatus.Created,
-                                                    CreatedAt = DateTime.UtcNow,
-                                                    SessionId = request.SessionId,
-                                                    Data      = null,
-                                                  };
+                                           var current = new Result
+                                                         {
+                                                           ResultId  = resultId,
+                                                           Name      = rc.Name,
+                                                           Status    = ResultStatus.Created,
+                                                           CreatedAt = DateTime.UtcNow,
+                                                           SessionId = request.SessionId,
+                                                           Data      = null,
+                                                         };
+                                           if (storage_.Results.ContainsKey(resultId))
+                                           {
+                                             storage_.Results[resultId] = current;
+                                           }
+
+                                           return current;
                                          });
 
     return Task.FromResult(new CreateResultsMetaDataResponse
