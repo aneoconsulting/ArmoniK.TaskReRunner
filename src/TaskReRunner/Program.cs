@@ -26,6 +26,8 @@ using ArmoniK.Api.gRPC.V1.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
+using Newtonsoft.Json;
+
 using Serilog;
 
 namespace ArmoniK.TaskReRunner;
@@ -122,6 +124,7 @@ internal static class Program
                             DataChunkMaxSize = 84,
                           };
 
+
       // Register the parameters needed for processing : 
       // communication token, payload and session IDs, configuration settings, data dependencies, folder location, expected output keys, task ID, and task options.
       var toProcess = new ProcessData
@@ -142,6 +145,31 @@ internal static class Program
                         TaskId      = taskId,
                         TaskOptions = taskOptions,
                       };
+
+      /*
+       * Create a JSON file with all Data
+       */
+      var JSONresult = JsonConvert.SerializeObject(toProcess);
+      var path       = "./toProcess.json";
+      if (File.Exists(path))
+      {
+        File.Delete(path);
+        using (var tw = new StreamWriter(path,
+                                         true))
+        {
+          tw.WriteLine(JSONresult);
+          tw.Close();
+        }
+      }
+      else if (!File.Exists(path))
+      {
+        using (var tw = new StreamWriter(path,
+                                         true))
+        {
+          tw.WriteLine(JSONresult);
+          tw.Close();
+        }
+      }
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
       client.Process(new ProcessRequest
