@@ -17,6 +17,8 @@
 using System;
 using System.IO;
 using System.Text;
+using System.CommandLine;
+using System.Threading.Tasks;
 
 using ArmoniK.Api.Common.Channel.Utils;
 using ArmoniK.Api.Common.Options;
@@ -30,6 +32,8 @@ using Newtonsoft.Json;
 
 using Serilog;
 
+using System.Diagnostics;
+
 namespace ArmoniK.TaskReRunner;
 
 internal static class Program
@@ -37,8 +41,7 @@ internal static class Program
   /// <summary>
   ///   Connect to a Worker to process tasks with specific process parameter.
   /// </summary>
-  /// <param name="arg">Command-line arguments.</param>
-  public static void Main(string[] arg)
+  public static void Run(string path)
   {
     // Create a logger configuration to write output to the console with contextual information.
     var loggerConfiguration_ = new LoggerConfiguration().WriteTo.Console()
@@ -59,63 +62,55 @@ internal static class Program
     // Create a gRPC client for the Worker service
     var client = new Worker.WorkerClient(channel);
 
-    // Generate a unique identifier for the payload
-    var payloadId = Guid.NewGuid()
-                        .ToString();
+    if (!File.Exists(path))
+    {
+      // Generate a unique identifier for the payload
+      var payloadId = Guid.NewGuid()
+                          .ToString();
 
-    // Generate a unique identifier for the task
-    var taskId = Guid.NewGuid()
-                     .ToString();
+      // Generate a unique identifier for the task
+      var taskId = Guid.NewGuid()
+                       .ToString();
 
-    // Generate a unique identifier for the communication token
-    var token = Guid.NewGuid()
+      // Generate a unique identifier for the communication token
+      var token = Guid.NewGuid()
+                      .ToString();
+
+      // Generate a unique identifier for the session
+      var sessionId = Guid.NewGuid()
+                          .ToString();
+
+      // Generate a unique identifier for the first data dependency
+      var dd1 = Guid.NewGuid()
                     .ToString();
 
-    // Generate a unique identifier for the session
-    var sessionId = Guid.NewGuid()
-                        .ToString();
+      // Generate a unique identifier for the first expected output key
+      var eok1 = Guid.NewGuid()
+                     .ToString();
 
-    // Generate a unique identifier for the first data dependency
-    var dd1 = Guid.NewGuid()
-                  .ToString();
+      // Generate a unique identifier for the second expected output key
+      var eok2 = Guid.NewGuid()
+                     .ToString();
 
-    // Generate a unique identifier for the first expected output key
-    var eok1 = Guid.NewGuid()
-                   .ToString();
+      // Create a temporary directory and get its full path
+      var folder = Directory.CreateTempSubdirectory()
+                            .FullName;
 
-    // Generate a unique identifier for the second expected output key
-    var eok2 = Guid.NewGuid()
-                   .ToString();
+      // Convert the integer 8 to a byte array for the payload
+      var payloadBytes = BitConverter.GetBytes(8);
 
-    // Create a temporary directory and get its full path
-    var folder = Directory.CreateTempSubdirectory()
-                          .FullName;
+      // Convert the string "DataDependency1" to a byte array using ASCII encoding
+      var dd1Bytes = Encoding.ASCII.GetBytes("DataDependency1");
 
-    // Convert the integer 8 to a byte array for the payload
-    var payloadBytes = BitConverter.GetBytes(8);
+      // Write payloadBytes in the corresponding file
+      File.WriteAllBytesAsync(Path.Combine(folder,
+                                           payloadId),
+                              payloadBytes);
 
-    // Convert the string "DataDependency1" to a byte array using ASCII encoding
-    var dd1Bytes = Encoding.ASCII.GetBytes("DataDependency1");
-
-    // Write payloadBytes in the corresponding file
-    File.WriteAllBytesAsync(Path.Combine(folder,
-                                         payloadId),
-                            payloadBytes);
-
-    // Write payloadBytes in the corresponding file
-    File.WriteAllBytesAsync(Path.Combine(folder,
-                                         dd1),
-                            dd1Bytes);
-    // Create an AgentStorage to keep the Agent Data After Process
-    var storage = new AgentStorage();
-
-    // Scope for the Task to run 
-    {
-      // Launch a Agent server to listen the worker
-      using var server = new Server("/tmp/agent.sock",
-                                    storage,
-                                    loggerConfiguration_);
-
+      // Write payloadBytes in the corresponding file
+      File.WriteAllBytesAsync(Path.Combine(folder,
+                                           dd1),
+                              dd1Bytes);
       // To test subtasking partition
       var taskOptions = new TaskOptions();
       taskOptions.Options["UseCase"] = "Launch";
@@ -141,59 +136,73 @@ internal static class Program
                         ExpectedOutputKeys =
                         {
                           eok1,
+                          //eok2, // Uncomment to test multiple expected output keys (results)
                         },
                         TaskId      = taskId,
                         TaskOptions = taskOptions,
                       };
 
+
+      logger_.LogInformation("Created Data in {path}: {toProcess}",
+                             path,
+                             toProcess);
       /*
        * Create a JSON file with all Data
        */
       var JSONresult = JsonConvert.SerializeObject(toProcess);
-      var path       = "./toProcess.json";
-      if (File.Exists(path))
+
+      using (var tw = new StreamWriter(path,
+                                       true))
       {
-        File.Delete(path);
-        using (var tw = new StreamWriter(path,
-                                         true))
-        {
-          tw.WriteLine(JSONresult);
-          tw.Close();
-        }
+        tw.WriteLine(JSONresult);
+        tw.Close();
       }
-      else if (!File.Exists(path))
-      {
-        using (var tw = new StreamWriter(path,
-                                         true))
-        {
-          tw.WriteLine(JSONresult);
-          tw.Close();
-        }
-      }
+    }
+
+    //Deserialize the Data in the Json
+    var serializer = new JsonSerializer();
+    var input = (ProcessData)serializer.Deserialize(File.OpenText(path),
+                                                    typeof(ProcessData));
+    if (input == null)
+    {
+      throw new ArgumentException();
+    }
+
+    logger_.LogInformation("Json as been parsed : {input}",
+                           input);
+    // Create an AgentStorage to keep the Agent Data After Process
+    var storage = new AgentStorage();
+
+    // Scope for the Task to run 
+    {
+      // Launch a Agent server to listen the worker
+      using var server = new Server("/tmp/agent.sock",
+                                    storage,
+                                    loggerConfiguration_);
+
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
       client.Process(new ProcessRequest
                      {
-                       CommunicationToken = token,
-                       PayloadId          = payloadId,
-                       SessionId          = sessionId,
-                       Configuration      = configuration,
+                       CommunicationToken = input.CommunicationToken,
+                       PayloadId          = input.PayloadId,
+                       SessionId          = input.SessionId,
+                       Configuration      = input.Configuration,
                        DataDependencies =
                        {
-                         dd1,
+                         input.DataDependencies,
                        },
-                       DataFolder = folder,
+                       DataFolder = input.DataFolder,
                        ExpectedOutputKeys =
                        {
-                         eok1,
-                         //eok2, // Uncomment to test multiple expected output keys (results)
+                         input.ExpectedOutputKeys,
                        },
-                       TaskId      = taskId,
-                       TaskOptions = taskOptions,
+                       TaskId      = input.TaskId,
+                       TaskOptions = input.TaskOptions,
                      });
 
-      logger_.LogInformation("Task Data: {toProcess}",
-                             toProcess);
+      logger_.LogInformation("Task Data: {input}",
+                             input);
     }
 
     // print everything in agent storage
@@ -207,7 +216,7 @@ internal static class Program
       logger_.LogInformation("Notified result{i} Id: {res}",
                              i,
                              result);
-      var byteArray = File.ReadAllBytes(Path.Combine(folder,
+      var byteArray = File.ReadAllBytes(Path.Combine(input.DataFolder,
                                                      result));
       logger_.LogInformation("Notified result{i} Data : {str}",
                              i,
@@ -229,5 +238,25 @@ internal static class Program
       logger_.LogInformation("Submitted Task Data : {task}",
                              task.Value);
     }
+  }
+
+  public static async Task<int> Main(string[] args)
+  {
+    var path = new Option<string>("--path",
+                                  description: "Path to the file containing the data needed to rerun the Task.",
+                                  getDefaultValue: () => "toProcess.json");
+
+    // Describe the application and its purpose
+    var rootCommand =
+      new RootCommand("This application allow you to rerun ArmoniK individual task in local. It read the data in <{path}>, connect to a worker and rerun the Task.");
+
+    rootCommand.AddOption(path);
+
+    // Configure the handler to call the function that will do the work
+    rootCommand.SetHandler(Run,
+                           path);
+
+    // Parse the command line parameters and call the function that represents the application
+    return await rootCommand.InvokeAsync(args);
   }
 }
