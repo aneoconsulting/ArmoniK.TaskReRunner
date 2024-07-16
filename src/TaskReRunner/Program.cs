@@ -65,7 +65,7 @@ internal static class Program
                                             Address = "/tmp/worker.sock",
                                           },
                                           new NullLogger<GrpcChannelProvider>()).Get();
-
+    // Crete the CommunicationToken
     var token = Guid.NewGuid()
                     .ToString();
 
@@ -74,106 +74,9 @@ internal static class Program
 
     if (!File.Exists(path))
     {
-      // Generate a unique identifier for the payload
-      var payloadId = Guid.NewGuid()
-                          .ToString();
-
-      // Generate a unique identifier for the task
-      var taskId = Guid.NewGuid()
-                       .ToString();
-
-      // Generate a unique identifier for the communication token
-
-
-      // Generate a unique identifier for the session
-      var sessionId = Guid.NewGuid()
-                          .ToString();
-
-      // Generate a unique identifier for the first data dependency
-      var dd1 = Guid.NewGuid()
-                    .ToString();
-
-      // Generate a unique identifier for the first expected output key
-      var eok1 = Guid.NewGuid()
-                     .ToString();
-
-      // Generate a unique identifier for the second expected output key
-      var eok2 = Guid.NewGuid()
-                     .ToString();
-
-      // Create a temporary directory and get its full path
-      //var folder = Directory.CreateTempSubdirectory()
-      //                      .FullName;
-
-      // Convert the integer 8 to a byte array for the payload
-      var payloadBytes = BitConverter.GetBytes(8);
-      payloadBytes = Encoding.ASCII.GetBytes("Payload");
-
-      // Convert the string "DataDependency1" to a byte array using ASCII encoding
-      var dd1Bytes = Encoding.ASCII.GetBytes("DataDependency1");
-
-      // Write payloadBytes in the corresponding file
-      //File.WriteAllBytesAsync(Path.Combine(folder,
-      //                                     payloadId),
-      //                        payloadBytes);
-
-      //// Write payloadBytes in the corresponding file
-      //File.WriteAllBytesAsync(Path.Combine(folder,
-      //                                     dd1),
-      //                        dd1Bytes);
-
-      string? folder = null;
-
-
-      // To test subtasking partition
-      var taskOptions = new TaskOptions();
-      taskOptions.Options["UseCase"] = "Launch";
-      var configuration = new Configuration
-                          {
-                            DataChunkMaxSize = 84,
-                          };
-
-      var rawData = new ConcurrentDictionary<string, byte[]?>();
-
-      rawData[dd1]       = dd1Bytes;
-      rawData[eok1]      = null;
-      rawData[payloadId] = payloadBytes;
-
-      // Register the parameters needed for processing : 
-      // communication token, payload and session IDs, configuration settings, data dependencies, folder location, expected output keys, task ID, and task options.
-      var DumpData = new DumpFormat
-                     {
-                       PayloadId     = payloadId,
-                       SessionId     = sessionId,
-                       Configuration = configuration,
-                       DataDependencies =
-                       {
-                         dd1,
-                       },
-                       ExpectedOutputKeys =
-                       {
-                         eok1,
-                         //eok2, // Uncomment to test multiple expected output keys (results)
-                       },
-                       TaskId      = taskId,
-                       TaskOptions = taskOptions,
-                       RawData     = rawData,
-                     };
-
-
-      logger_.LogInformation("Created Data in {path}: {DumpData}",
-                             path,
-                             DumpData);
-      /*
-       * Create a JSON file with all Data
-       */
-      var JSONresult = JsonConvert.SerializeObject(DumpData);
-
-      using (var tw = new StreamWriter(path,
-                                       false))
-      {
-        tw.WriteLine(JSONresult);
-      }
+      logger_.LogError("ERROR: {path} doesn't exist",
+                       path);
+      return;
     }
 
     //Deserialize the Data in the Json
@@ -184,20 +87,19 @@ internal static class Program
     {
       logger_.LogError("ERROR: The Data in {input} doesn't contain any RawData",
                        input);
+      return;
     }
-    else
-    {
-      if (!Directory.Exists(dataFolder))
-      {
-        Directory.CreateDirectory(dataFolder);
-      }
 
-      foreach (var id in input.RawData)
-      {
-        File.WriteAllBytesAsync(Path.Combine(dataFolder,
-                                             id.Key),
-                                id.Value ?? Encoding.ASCII.GetBytes(""));
-      }
+    if (!Directory.Exists(dataFolder))
+    {
+      Directory.CreateDirectory(dataFolder);
+    }
+
+    foreach (var id in input.RawData)
+    {
+      File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                           id.Key),
+                              id.Value ?? Encoding.ASCII.GetBytes(""));
     }
 
     // Create an AgentStorage to keep the Agent Data After Process
