@@ -8,6 +8,8 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>TaskReRunner</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,7 +18,7 @@
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
-
+    <None Include="README.md" Pack="true" PackagePath="../../" />
   </ItemGroup>
 
 </Project>
