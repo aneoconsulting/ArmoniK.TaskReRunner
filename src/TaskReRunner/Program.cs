@@ -44,7 +44,9 @@ internal static class Program
   /// <summary>
   ///   Connect to a Worker to process tasks with specific process parameter.
   /// </summary>
-  public static void Run(string path)
+  /// <exception cref="ArgumentException"></exception>
+  public static void Run(string path,
+                         string dataFolder)
   {
     // Create a logger configuration to write output to the console with contextual information.
     var loggerConfiguration_ = new LoggerConfiguration().WriteTo.Console()
@@ -96,24 +98,29 @@ internal static class Program
                      .ToString();
 
       // Create a temporary directory and get its full path
-      var folder = Directory.CreateTempSubdirectory()
-                            .FullName;
+      //var folder = Directory.CreateTempSubdirectory()
+      //                      .FullName;
 
       // Convert the integer 8 to a byte array for the payload
       var payloadBytes = BitConverter.GetBytes(8);
+      payloadBytes = Encoding.ASCII.GetBytes("Payload");
 
       // Convert the string "DataDependency1" to a byte array using ASCII encoding
       var dd1Bytes = Encoding.ASCII.GetBytes("DataDependency1");
 
       // Write payloadBytes in the corresponding file
-      File.WriteAllBytesAsync(Path.Combine(folder,
-                                           payloadId),
-                              payloadBytes);
+      //File.WriteAllBytesAsync(Path.Combine(folder,
+      //                                     payloadId),
+      //                        payloadBytes);
 
-      // Write payloadBytes in the corresponding file
-      File.WriteAllBytesAsync(Path.Combine(folder,
-                                           dd1),
-                              dd1Bytes);
+      //// Write payloadBytes in the corresponding file
+      //File.WriteAllBytesAsync(Path.Combine(folder,
+      //                                     dd1),
+      //                        dd1Bytes);
+
+      string? folder = null;
+
+
       // To test subtasking partition
       var taskOptions = new TaskOptions();
       taskOptions.Options["UseCase"] = "Launch";
@@ -171,6 +178,28 @@ internal static class Program
     var serializer = new JsonSerializer();
     var input = (ProcessData)(serializer.Deserialize(File.OpenText(path),
                                                      typeof(ProcessData)) ?? throw new ArgumentException());
+    if (input.DataFolder == null)
+    {
+      if (input.RawData.IsEmpty)
+      {
+        logger_.LogError("ERROR: The Data in {input} doesn't contain any RawData",
+                         input);
+      }
+      else
+      {
+        if (!Directory.Exists(dataFolder))
+        {
+          Directory.CreateDirectory(dataFolder);
+        }
+
+        foreach (var id in input.RawData)
+        {
+          File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                               id.Key),
+                                  id.Value ?? Encoding.ASCII.GetBytes(""));
+        }
+      }
+    }
 
     // Create an AgentStorage to keep the Agent Data After Process
     var storage = new AgentStorage();
@@ -181,7 +210,6 @@ internal static class Program
       using var server = new Server("/tmp/agent.sock",
                                     storage,
                                     loggerConfiguration_);
-
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
       client.Process(new ProcessRequest
@@ -194,7 +222,7 @@ internal static class Program
                        {
                          input.DataDependencies,
                        },
-                       DataFolder = input.DataFolder,
+                       DataFolder = input.DataFolder ?? dataFolder,
                        ExpectedOutputKeys =
                        {
                          input.ExpectedOutputKeys,
@@ -217,7 +245,7 @@ internal static class Program
       logger_.LogInformation("Notified result{i} Id: {res}",
                              i,
                              result);
-      var byteArray = File.ReadAllBytes(Path.Combine(input.DataFolder,
+      var byteArray = File.ReadAllBytes(Path.Combine(input.DataFolder ?? dataFolder,
                                                      result));
       logger_.LogInformation("Notified result{i} Data : {str}",
                              i,
@@ -246,16 +274,22 @@ internal static class Program
     var path = new Option<string>("--path",
                                   description: "Path to the file containing the data needed to rerun the Task in json.",
                                   getDefaultValue: () => "toProcess.json");
+    var dataFolder = new Option<string>("--dataFolder",
+                                        description:
+                                        "Absolute path to the folder containing the data needed to rerun the Task in binary or create one if the binary are in the json.",
+                                        getDefaultValue: () => "/tmp/");
 
     // Describe the application and its purpose
     var rootCommand =
       new RootCommand("This application allow you to rerun ArmoniK individual task in local. It read the data in <path>, connect to a worker and rerun the Task.");
 
     rootCommand.AddOption(path);
+    rootCommand.AddOption(dataFolder);
 
     // Configure the handler to call the function that will do the work
     rootCommand.SetHandler(Run,
-                           path);
+                           path,
+                           dataFolder);
 
     // Parse the command line parameters and call the function that represents the application
     return await rootCommand.InvokeAsync(args);
