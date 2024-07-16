@@ -152,21 +152,16 @@ internal static class Program
       var JSONresult = JsonConvert.SerializeObject(toProcess);
 
       using (var tw = new StreamWriter(path,
-                                       true))
+                                       false))
       {
         tw.WriteLine(JSONresult);
-        tw.Close();
       }
     }
 
     //Deserialize the Data in the Json
     var serializer = new JsonSerializer();
-    var input = (ProcessData)serializer.Deserialize(File.OpenText(path),
-                                                    typeof(ProcessData));
-    if (input == null)
-    {
-      throw new ArgumentException();
-    }
+    var input = (ProcessData)(serializer.Deserialize(File.OpenText(path),
+                                                     typeof(ProcessData)) ?? throw new ArgumentException());
 
     logger_.LogInformation("Json as been parsed : {input}",
                            input);
@@ -243,12 +238,12 @@ internal static class Program
   public static async Task<int> Main(string[] args)
   {
     var path = new Option<string>("--path",
-                                  description: "Path to the file containing the data needed to rerun the Task.",
+                                  description: "Path to the file containing the data needed to rerun the Task in json.",
                                   getDefaultValue: () => "toProcess.json");
 
     // Describe the application and its purpose
     var rootCommand =
-      new RootCommand("This application allow you to rerun ArmoniK individual task in local. It read the data in <{path}>, connect to a worker and rerun the Task.");
+      new RootCommand("This application allow you to rerun ArmoniK individual task in local. It read the data in <path>, connect to a worker and rerun the Task.");
 
     rootCommand.AddOption(path);
 
