@@ -141,33 +141,33 @@ internal static class Program
 
       // Register the parameters needed for processing : 
       // communication token, payload and session IDs, configuration settings, data dependencies, folder location, expected output keys, task ID, and task options.
-      var toProcess = new DumpFormat
-                      {
-                        PayloadId     = payloadId,
-                        SessionId     = sessionId,
-                        Configuration = configuration,
-                        DataDependencies =
-                        {
-                          dd1,
-                        },
-                        ExpectedOutputKeys =
-                        {
-                          eok1,
-                          //eok2, // Uncomment to test multiple expected output keys (results)
-                        },
-                        TaskId      = taskId,
-                        TaskOptions = taskOptions,
-                        RawData     = rawData,
-                      };
+      var DumpData = new DumpFormat
+                     {
+                       PayloadId     = payloadId,
+                       SessionId     = sessionId,
+                       Configuration = configuration,
+                       DataDependencies =
+                       {
+                         dd1,
+                       },
+                       ExpectedOutputKeys =
+                       {
+                         eok1,
+                         //eok2, // Uncomment to test multiple expected output keys (results)
+                       },
+                       TaskId      = taskId,
+                       TaskOptions = taskOptions,
+                       RawData     = rawData,
+                     };
 
 
-      logger_.LogInformation("Created Data in {path}: {toProcess}",
+      logger_.LogInformation("Created Data in {path}: {DumpData}",
                              path,
-                             toProcess);
+                             DumpData);
       /*
        * Create a JSON file with all Data
        */
-      var JSONresult = JsonConvert.SerializeObject(toProcess);
+      var JSONresult = JsonConvert.SerializeObject(DumpData);
 
       using (var tw = new StreamWriter(path,
                                        false))
@@ -209,6 +209,18 @@ internal static class Program
       using var server = new Server("/tmp/agent.sock",
                                     storage,
                                     loggerConfiguration_);
+      var toProcess = new ProcessData
+                      {
+                        CommunicationToken = token,
+                        PayloadId          = input.PayloadId,
+                        SessionId          = input.SessionId,
+                        Configuration      = input.Configuration,
+                        DataDependencies   = input.DataDependencies,
+                        DataFolder         = dataFolder,
+                        ExpectedOutputKeys = input.ExpectedOutputKeys,
+                        TaskId             = input.TaskId,
+                        TaskOptions        = input.TaskOptions,
+                      };
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
       client.Process(new ProcessRequest
@@ -230,8 +242,8 @@ internal static class Program
                        TaskOptions = input.TaskOptions,
                      });
       // Print information given to data
-      logger_.LogInformation("Task Data: {input}",
-                             input);
+      logger_.LogInformation("Task Data: {toProcess}",
+                             toProcess);
     }
 
     // Print everything in agent storage
