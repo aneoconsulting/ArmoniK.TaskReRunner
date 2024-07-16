@@ -206,7 +206,7 @@ internal static class Program
 
     // Scope for the Task to run 
     {
-      // Launch a Agent server to listen the worker
+      // Launch an Agent server to listen the worker
       using var server = new Server("/tmp/agent.sock",
                                     storage,
                                     loggerConfiguration_);
