@@ -37,6 +37,8 @@ using Serilog;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
+using ArmoniK.TaskReRunner.Storage;
+
 namespace ArmoniK.TaskReRunner;
 
 internal static class Program

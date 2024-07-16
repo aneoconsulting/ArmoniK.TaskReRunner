@@ -17,7 +17,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace ArmoniK.TaskReRunner;
+namespace ArmoniK.TaskReRunner.Storage;
 
 /// <summary>
 ///   A storage class to keep Tasks and Result data.

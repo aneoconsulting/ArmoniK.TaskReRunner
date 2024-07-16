@@ -18,6 +18,8 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
+using ArmoniK.TaskReRunner.Storage;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;

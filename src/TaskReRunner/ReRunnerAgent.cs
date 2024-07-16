@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 
 using ArmoniK.Api.gRPC.V1;
 using ArmoniK.Api.gRPC.V1.Agent;
+using ArmoniK.TaskReRunner.Storage;
 
 using Google.Protobuf.WellKnownTypes;
 

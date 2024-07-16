@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 using ArmoniK.Api.gRPC.V1;
 
-namespace ArmoniK.TaskReRunner;
+namespace ArmoniK.TaskReRunner.Storage;
 
 /// <summary>
 ///   Represents all the parameters needed to launch a process.
