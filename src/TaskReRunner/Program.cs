@@ -66,6 +66,9 @@ internal static class Program
                                           },
                                           new NullLogger<GrpcChannelProvider>()).Get();
 
+    var token = Guid.NewGuid()
+                    .ToString();
+
     // Create a gRPC client for the Worker service
     var client = new Worker.WorkerClient(channel);
 
@@ -80,8 +83,7 @@ internal static class Program
                        .ToString();
 
       // Generate a unique identifier for the communication token
-      var token = Guid.NewGuid()
-                      .ToString();
+
 
       // Generate a unique identifier for the session
       var sessionId = Guid.NewGuid()
@@ -139,17 +141,15 @@ internal static class Program
 
       // Register the parameters needed for processing : 
       // communication token, payload and session IDs, configuration settings, data dependencies, folder location, expected output keys, task ID, and task options.
-      var toProcess = new ProcessData
+      var toProcess = new DumpFormat
                       {
-                        CommunicationToken = token,
-                        PayloadId          = payloadId,
-                        SessionId          = sessionId,
-                        Configuration      = configuration,
+                        PayloadId     = payloadId,
+                        SessionId     = sessionId,
+                        Configuration = configuration,
                         DataDependencies =
                         {
                           dd1,
                         },
-                        DataFolder = folder,
                         ExpectedOutputKeys =
                         {
                           eok1,
@@ -178,28 +178,25 @@ internal static class Program
 
     //Deserialize the Data in the Json
     var serializer = new JsonSerializer();
-    var input = (ProcessData)(serializer.Deserialize(File.OpenText(path),
-                                                     typeof(ProcessData)) ?? throw new ArgumentException());
-    if (input.DataFolder == null)
+    var input = (DumpFormat)(serializer.Deserialize(File.OpenText(path),
+                                                    typeof(DumpFormat)) ?? throw new ArgumentException());
+    if (input.RawData.IsEmpty)
     {
-      if (input.RawData.IsEmpty)
+      logger_.LogError("ERROR: The Data in {input} doesn't contain any RawData",
+                       input);
+    }
+    else
+    {
+      if (!Directory.Exists(dataFolder))
       {
-        logger_.LogError("ERROR: The Data in {input} doesn't contain any RawData",
-                         input);
+        Directory.CreateDirectory(dataFolder);
       }
-      else
-      {
-        if (!Directory.Exists(dataFolder))
-        {
-          Directory.CreateDirectory(dataFolder);
-        }
 
-        foreach (var id in input.RawData)
-        {
-          File.WriteAllBytesAsync(Path.Combine(dataFolder,
-                                               id.Key),
-                                  id.Value ?? Encoding.ASCII.GetBytes(""));
-        }
+      foreach (var id in input.RawData)
+      {
+        File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                             id.Key),
+                                id.Value ?? Encoding.ASCII.GetBytes(""));
       }
     }
 
@@ -216,7 +213,7 @@ internal static class Program
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
       client.Process(new ProcessRequest
                      {
-                       CommunicationToken = input.CommunicationToken,
+                       CommunicationToken = token,
                        PayloadId          = input.PayloadId,
                        SessionId          = input.SessionId,
                        Configuration      = input.Configuration,
@@ -224,7 +221,7 @@ internal static class Program
                        {
                          input.DataDependencies,
                        },
-                       DataFolder = input.DataFolder ?? dataFolder,
+                       DataFolder = dataFolder,
                        ExpectedOutputKeys =
                        {
                          input.ExpectedOutputKeys,
@@ -247,7 +244,7 @@ internal static class Program
       logger_.LogInformation("Notified result{i} Id: {res}",
                              i,
                              result);
-      var byteArray = File.ReadAllBytes(Path.Combine(input.DataFolder ?? dataFolder,
+      var byteArray = File.ReadAllBytes(Path.Combine(dataFolder,
                                                      result));
       logger_.LogInformation("Notified result{i} Data : {str}",
                              i,
