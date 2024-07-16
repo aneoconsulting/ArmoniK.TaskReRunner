@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 using ArmoniK.Api.gRPC.V1;
@@ -71,4 +72,9 @@ public record ProcessData
   ///   Gets or sets the folder location for storing data.
   /// </summary>
   public required string DataFolder { get; init; }
+
+  /// <summary>
+  ///   Get or init a dictionary containing the payload, data dependencies, and expected outputs corresponding byte array.
+  /// </summary>
+  public ConcurrentDictionary<string, byte[]?> RawData { get; init; } = new();
 }
