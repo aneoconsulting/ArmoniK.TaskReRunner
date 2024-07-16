@@ -279,7 +279,8 @@ internal static class Program
     var dataFolder = new Option<string>("--dataFolder",
                                         description:
                                         "Absolute path to the folder containing the data needed to rerun the Task in binary or create one if the binary are in the json.",
-                                        getDefaultValue: () => "/tmp/");
+                                        getDefaultValue: () => Directory.CreateTempSubdirectory()
+                                                                        .FullName);
 
     // Describe the application and its purpose
     var rootCommand =
