@@ -15,17 +15,15 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.CommandLine;
 using System.IO;
 using System.Text;
-using System.CommandLine;
 using System.Threading.Tasks;
 
 using ArmoniK.Api.Common.Channel.Utils;
 using ArmoniK.Api.Common.Options;
-using ArmoniK.Api.gRPC.V1;
 using ArmoniK.Api.gRPC.V1.Worker;
+using ArmoniK.TaskReRunner.Storage;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -33,11 +31,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 
 using Serilog;
-
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-
-using ArmoniK.TaskReRunner.Storage;
 
 namespace ArmoniK.TaskReRunner;
 
