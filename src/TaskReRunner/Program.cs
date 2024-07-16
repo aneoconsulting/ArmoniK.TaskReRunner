@@ -15,6 +15,8 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.CommandLine;
@@ -33,6 +35,7 @@ using Newtonsoft.Json;
 using Serilog;
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ArmoniK.TaskReRunner;
 
@@ -119,6 +122,11 @@ internal static class Program
                             DataChunkMaxSize = 84,
                           };
 
+      var rawData = new ConcurrentDictionary<string, byte[]?>();
+
+      rawData[dd1]       = dd1Bytes;
+      rawData[eok1]      = null;
+      rawData[payloadId] = payloadBytes;
 
       // Register the parameters needed for processing : 
       // communication token, payload and session IDs, configuration settings, data dependencies, folder location, expected output keys, task ID, and task options.
@@ -140,6 +148,7 @@ internal static class Program
                         },
                         TaskId      = taskId,
                         TaskOptions = taskOptions,
+                        RawData     = rawData,
                       };
 
 
@@ -163,8 +172,6 @@ internal static class Program
     var input = (ProcessData)(serializer.Deserialize(File.OpenText(path),
                                                      typeof(ProcessData)) ?? throw new ArgumentException());
 
-    logger_.LogInformation("Json as been parsed : {input}",
-                           input);
     // Create an AgentStorage to keep the Agent Data After Process
     var storage = new AgentStorage();
 
@@ -195,13 +202,12 @@ internal static class Program
                        TaskId      = input.TaskId,
                        TaskOptions = input.TaskOptions,
                      });
-
+      // Print information given to data
       logger_.LogInformation("Task Data: {input}",
                              input);
     }
 
-    // print everything in agent storage
-
+    // Print everything in agent storage
     logger_.LogInformation("resultsIds : {results}",
                            storage.NotifiedResults);
 
