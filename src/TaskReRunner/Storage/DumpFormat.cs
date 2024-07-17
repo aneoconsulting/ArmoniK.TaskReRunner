@@ -22,9 +22,9 @@ using ArmoniK.Api.gRPC.V1;
 namespace ArmoniK.TaskReRunner.Storage;
 
 /// <summary>
-///   Represents all the parameters needed to launch a process.
-///   Properties: CommunicationToken, PayloadId, SessionId, Configuration, DataFolder, TaskId, TaskOptions,
-///   DataDependencies, ExpectedOutputKeys.
+///   Represents all the parameters extracted from ArmoniK required to rerun a task.
+///   Properties: PayloadId, SessionId, Configuration, TaskId, TaskOptions,
+///   DataDependencies, ExpectedOutputKeys, RawData.
 /// </summary>
 public record DumpFormat
 {

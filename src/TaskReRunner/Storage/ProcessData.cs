@@ -71,10 +71,5 @@ public record ProcessData
   /// <summary>
   ///   Gets or sets the folder location for storing data.
   /// </summary>
-  public required string? DataFolder { get; init; }
-
-  /// <summary>
-  ///   Get or init a dictionary containing the payload, data dependencies, and expected outputs corresponding byte array.
-  /// </summary>
-  public ConcurrentDictionary<string, byte[]?> RawData { get; init; } = new();
+  public required string DataFolder { get; init; }
 }
