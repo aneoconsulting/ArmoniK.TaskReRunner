@@ -44,9 +44,9 @@ public record DumpFormat
   public required string TaskId { get; init; }
 
   /// <summary>
-  ///   Gets or sets the task options for the process. Nullable.
+  ///   Gets or sets the task options for the process.
   /// </summary>
-  public required TaskOptions? TaskOptions { get; init; }
+  public required TaskOptions TaskOptions { get; init; }
 
   /// <summary>
   ///   Gets the list of data dependencies required for the process.
