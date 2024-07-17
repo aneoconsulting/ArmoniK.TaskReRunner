@@ -32,6 +32,8 @@ using Newtonsoft.Json;
 
 using Serilog;
 
+using ArmoniK.TaskReRunner.Common;
+
 namespace ArmoniK.TaskReRunner;
 
 internal static class Program
