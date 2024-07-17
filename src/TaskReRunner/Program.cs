@@ -191,7 +191,7 @@ internal static class Program
 
     // Describe the application and its purpose
     var rootCommand =
-      new RootCommand("This application allow you to rerun ArmoniK individual task in local. It read the data in <path>, connect to a worker and rerun the Task.");
+      new RootCommand("This application allows you to rerun ArmoniK individual task in local. It reads the data in <path>, connect to a worker and rerun the Task.");
 
     rootCommand.AddOption(path);
     rootCommand.AddOption(dataFolder);
