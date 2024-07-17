@@ -26,7 +26,7 @@ namespace ArmoniK.TaskReRunner.Storage;
 ///   Properties: PayloadId, SessionId, Configuration, TaskId, TaskOptions,
 ///   DataDependencies, ExpectedOutputKeys, RawData.
 /// </summary>
-public record DumpFormat
+public record TaskDump
 {
   /// <summary>
   ///   Gets or sets the session identifier.

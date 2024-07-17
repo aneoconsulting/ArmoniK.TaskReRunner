@@ -76,8 +76,8 @@ internal static class Program
 
     //Deserialize the Data in the Json
     var serializer = new JsonSerializer();
-    var input = (DumpFormat)(serializer.Deserialize(File.OpenText(path),
-                                                    typeof(DumpFormat)) ?? throw new ArgumentException());
+    var input = (TaskDump)(serializer.Deserialize(File.OpenText(path),
+                                                  typeof(TaskDump)) ?? throw new ArgumentException());
     if (input.RawData.IsEmpty)
     {
       logger_.LogError("ERROR: The Data in {input} doesn't contain any RawData",
