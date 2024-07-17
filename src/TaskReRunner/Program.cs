@@ -60,7 +60,7 @@ internal static class Program
                                             Address = "/tmp/worker.sock",
                                           },
                                           new NullLogger<GrpcChannelProvider>()).Get();
-    // Crete the CommunicationToken
+    // Create the CommunicationToken
     var token = Guid.NewGuid()
                     .ToString();
 
