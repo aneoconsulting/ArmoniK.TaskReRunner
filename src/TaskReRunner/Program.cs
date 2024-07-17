@@ -39,6 +39,8 @@ internal static class Program
   /// <summary>
   ///   Connect to a Worker to process tasks with specific process parameter.
   /// </summary>
+  /// <param name="path">Path to the json file containing the data needed to rerun the Task.</param>
+  /// <param name="dataFolder">Absolute path to the folder created to contain the binary data required to rerun the Task.</param>
   /// <exception cref="ArgumentException"></exception>
   public static void Run(string path,
                          string dataFolder)
@@ -104,6 +106,7 @@ internal static class Program
       using var server = new Server("/tmp/agent.sock",
                                     storage,
                                     loggerConfiguration_);
+      // Create a class with all values use to process a task 
       var toProcess = new ProcessData
                       {
                         CommunicationToken = token,
@@ -177,12 +180,12 @@ internal static class Program
 
   public static async Task<int> Main(string[] args)
   {
+    // Define the options for the application with their description and default value
     var path = new Option<string>("--path",
-                                  description: "Path to the file containing the data needed to rerun the Task in json.",
-                                  getDefaultValue: () => "toProcess.json");
+                                  description: "Path to the json file containing the data needed to rerun the Task.",
+                                  getDefaultValue: () => "Data.json");
     var dataFolder = new Option<string>("--dataFolder",
-                                        description:
-                                        "Absolute path to the folder containing the data needed to rerun the Task in binary or create one if the binary are in the json.",
+                                        description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
                                         getDefaultValue: () => Directory.CreateTempSubdirectory()
                                                                         .FullName);
 
