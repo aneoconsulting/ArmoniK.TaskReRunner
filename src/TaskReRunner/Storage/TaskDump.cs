@@ -14,57 +14,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+//using System.Collections.Concurrent;
+//using System.Collections.Generic;
 
-using ArmoniK.Api.gRPC.V1;
+//using ArmoniK.Api.gRPC.V1;
 
-namespace ArmoniK.TaskReRunner.Storage;
+//namespace ArmoniK.TaskReRunner.Storage;
 
-/// <summary>
-///   Represents all the parameters extracted from ArmoniK required to rerun a task.
-///   Properties: PayloadId, SessionId, Configuration, TaskId, TaskOptions,
-///   DataDependencies, ExpectedOutputKeys, RawData.
-/// </summary>
-public record TaskDump
-{
-  /// <summary>
-  ///   Gets or sets the session identifier.
-  /// </summary>
-  public required string SessionId { get; init; }
+///// <summary>
+/////   Represents all the parameters extracted from ArmoniK required to rerun a task.
+/////   Properties: PayloadId, SessionId, Configuration, TaskId, TaskOptions,
+/////   DataDependencies, ExpectedOutputKeys, RawData.
+///// </summary>
+//public record TaskDump
+//{
+//  /// <summary>
+//  ///   Gets or sets the session identifier.
+//  /// </summary>
+//  public required string SessionId { get; init; }
 
-  /// <summary>
-  ///   Gets or init the payload identifier.
-  /// </summary>
-  public required string PayloadId { get; init; }
+//  /// <summary>
+//  ///   Gets or init the payload identifier.
+//  /// </summary>
+//  public required string PayloadId { get; init; }
 
-  /// <summary>
-  ///   Gets or sets the task identifier.
-  /// </summary>
-  public required string TaskId { get; init; }
+//  /// <summary>
+//  ///   Gets or sets the task identifier.
+//  /// </summary>
+//  public required string TaskId { get; init; }
 
-  /// <summary>
-  ///   Gets or sets the task options for the process.
-  /// </summary>
-  public required TaskOptions TaskOptions { get; init; }
+//  /// <summary>
+//  ///   Gets or sets the task options for the process.
+//  /// </summary>
+//  public required TaskOptions TaskOptions { get; init; }
 
-  /// <summary>
-  ///   Gets the list of data dependencies required for the process.
-  /// </summary>
-  public ICollection<string> DataDependencies { get; } = new List<string>();
+//  /// <summary>
+//  ///   Gets the list of data dependencies required for the process.
+//  /// </summary>
+//  public ICollection<string> DataDependencies { get; } = new List<string>();
 
-  /// <summary>
-  ///   Gets the list of expected output keys.
-  /// </summary>
-  public ICollection<string> ExpectedOutputKeys { get; } = new List<string>();
+//  /// <summary>
+//  ///   Gets the list of expected output keys.
+//  /// </summary>
+//  public ICollection<string> ExpectedOutputKeys { get; } = new List<string>();
 
-  /// <summary>
-  ///   Gets or sets the configuration settings for the process.
-  /// </summary>
-  public required Configuration Configuration { get; init; }
+//  /// <summary>
+//  ///   Gets or sets the configuration settings for the process.
+//  /// </summary>
+//  public required Configuration Configuration { get; init; }
 
-  /// <summary>
-  ///   Get or init a dictionary containing the payload, data dependencies, and expected outputs corresponding byte array.
-  /// </summary>
-  public ConcurrentDictionary<string, byte[]?> RawData { get; init; } = new();
-}
+//  /// <summary>
+//  ///   Get or init a dictionary containing the payload, data dependencies, and expected outputs corresponding byte array.
+//  /// </summary>
+//  public ConcurrentDictionary<string, byte[]?> RawData { get; init; } = new();
+//}
+
+
