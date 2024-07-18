@@ -29,6 +29,15 @@ This feature ensures that users can easily re-execute tasks to identify and fix 
     ComputePlane__WorkerChannel__Address=/tmp/worker.sock ComputePlane__AgentChannel__Address=/tmp/agent.sock dotnet run --project <PATH_PROJECT.CSPROJ>
     ```
 
+## Prerequise
+
+To run the Program you need:
+- To have a Task that you want to rerun with its **TaskId**.
+- To have a worker which **fail**.
+- To extract the Data from the task you want to rerun in the correct **json** format.
+
+***N.B : You can't run a Task without have already run it through ArmoniK.***
+
 ## Usage
 
 ### Rerun a Single Task
