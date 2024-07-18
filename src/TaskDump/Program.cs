@@ -15,10 +15,9 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.CommandLine;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,14 +27,9 @@ using ArmoniK.Api.Client.Submitter;
 using ArmoniK.Api.gRPC.V1;
 using ArmoniK.Api.gRPC.V1.Results;
 using ArmoniK.Api.gRPC.V1.Tasks;
+using ArmoniK.TaskReRunner.Common;
 
 using Newtonsoft.Json;
-
-using System.Collections.Concurrent;
-
-using Empty = ArmoniK.Api.gRPC.V1.Empty;
-
-using ArmoniK.TaskReRunner.Common;
 
 internal static class Program
 {

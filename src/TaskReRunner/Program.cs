@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using ArmoniK.Api.Common.Channel.Utils;
 using ArmoniK.Api.Common.Options;
 using ArmoniK.Api.gRPC.V1.Worker;
+using ArmoniK.TaskReRunner.Common;
 using ArmoniK.TaskReRunner.Storage;
 
 using Microsoft.Extensions.Logging;
@@ -31,8 +32,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 
 using Serilog;
-
-using ArmoniK.TaskReRunner.Common;
 
 namespace ArmoniK.TaskReRunner;
 
