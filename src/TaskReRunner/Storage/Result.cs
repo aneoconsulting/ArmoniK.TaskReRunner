@@ -18,7 +18,7 @@ using System;
 
 using ArmoniK.Api.gRPC.V1;
 
-namespace ArmoniK.TaskReRunner;
+namespace ArmoniK.TaskReRunner.Storage;
 
 /// <summary>
 ///   Represents a result with its creation date, name, status, session ID, result ID, and data.

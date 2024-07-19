@@ -15,16 +15,20 @@
 // limitations under the License.
 
 using System;
+using System.CommandLine;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 using ArmoniK.Api.Common.Channel.Utils;
 using ArmoniK.Api.Common.Options;
-using ArmoniK.Api.gRPC.V1;
 using ArmoniK.Api.gRPC.V1.Worker;
+using ArmoniK.TaskReRunner.Storage;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+
+using Newtonsoft.Json;
 
 using Serilog;
 
@@ -35,8 +39,11 @@ internal static class Program
   /// <summary>
   ///   Connect to a Worker to process tasks with specific process parameter.
   /// </summary>
-  /// <param name="arg">Command-line arguments.</param>
-  public static void Main(string[] arg)
+  /// <param name="path">Path to the json file containing the data needed to rerun the Task.</param>
+  /// <param name="dataFolder">Absolute path to the folder created to contain the binary data required to rerun the Task.</param>
+  /// <exception cref="ArgumentException"></exception>
+  public static void Run(string path,
+                         string dataFolder)
   {
     // Create a logger configuration to write output to the console with contextual information.
     var loggerConfiguration_ = new LoggerConfiguration().WriteTo.Console()
@@ -53,123 +60,91 @@ internal static class Program
                                             Address = "/tmp/worker.sock",
                                           },
                                           new NullLogger<GrpcChannelProvider>()).Get();
+    // Create the CommunicationToken
+    var token = Guid.NewGuid()
+                    .ToString();
 
     // Create a gRPC client for the Worker service
     var client = new Worker.WorkerClient(channel);
 
-    // Generate a unique identifier for the payload
-    var payloadId = Guid.NewGuid()
-                        .ToString();
+    if (!File.Exists(path))
+    {
+      logger_.LogError("ERROR: {path} doesn't exist",
+                       path);
+      return;
+    }
 
-    // Generate a unique identifier for the task
-    var taskId = Guid.NewGuid()
-                     .ToString();
+    //Deserialize the Data in the Json
+    var serializer = new JsonSerializer();
+    var input = (TaskDump)(serializer.Deserialize(File.OpenText(path),
+                                                  typeof(TaskDump)) ?? throw new ArgumentException());
+    if (input.RawData.IsEmpty)
+    {
+      logger_.LogError("ERROR: The Data in {input} doesn't contain any RawData",
+                       input);
+      return;
+    }
 
-    // Generate a unique identifier for the communication token
-    var token = Guid.NewGuid()
-                    .ToString();
+    if (!Directory.Exists(dataFolder))
+    {
+      Directory.CreateDirectory(dataFolder);
+    }
 
-    // Generate a unique identifier for the session
-    var sessionId = Guid.NewGuid()
-                        .ToString();
+    foreach (var id in input.RawData)
+    {
+      File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                           id.Key),
+                              id.Value ?? Encoding.ASCII.GetBytes(""));
+    }
 
-    // Generate a unique identifier for the first data dependency
-    var dd1 = Guid.NewGuid()
-                  .ToString();
-
-    // Generate a unique identifier for the first expected output key
-    var eok1 = Guid.NewGuid()
-                   .ToString();
-
-    // Generate a unique identifier for the second expected output key
-    var eok2 = Guid.NewGuid()
-                   .ToString();
-
-    // Create a temporary directory and get its full path
-    var folder = Directory.CreateTempSubdirectory()
-                          .FullName;
-
-    // Convert the integer 8 to a byte array for the payload
-    var payloadBytes = BitConverter.GetBytes(8);
-
-    // Convert the string "DataDependency1" to a byte array using ASCII encoding
-    var dd1Bytes = Encoding.ASCII.GetBytes("DataDependency1");
-
-    // Write payloadBytes in the corresponding file
-    File.WriteAllBytesAsync(Path.Combine(folder,
-                                         payloadId),
-                            payloadBytes);
-
-    // Write payloadBytes in the corresponding file
-    File.WriteAllBytesAsync(Path.Combine(folder,
-                                         dd1),
-                            dd1Bytes);
     // Create an AgentStorage to keep the Agent Data After Process
     var storage = new AgentStorage();
 
     // Scope for the Task to run 
     {
-      // Launch a Agent server to listen the worker
+      // Launch an Agent server to listen the worker
       using var server = new Server("/tmp/agent.sock",
                                     storage,
                                     loggerConfiguration_);
-
-      // To test subtasking partition
-      var taskOptions = new TaskOptions();
-      taskOptions.Options["UseCase"] = "Launch";
-      var configuration = new Configuration
-                          {
-                            DataChunkMaxSize = 84,
-                          };
-
-      // Register the parameters needed for processing : 
-      // communication token, payload and session IDs, configuration settings, data dependencies, folder location, expected output keys, task ID, and task options.
+      // Create a class with all values use to process a task 
       var toProcess = new ProcessData
                       {
                         CommunicationToken = token,
-                        PayloadId          = payloadId,
-                        SessionId          = sessionId,
-                        Configuration      = configuration,
-                        DataDependencies =
-                        {
-                          dd1,
-                        },
-                        DataFolder = folder,
-                        ExpectedOutputKeys =
-                        {
-                          eok1,
-                        },
-                        TaskId      = taskId,
-                        TaskOptions = taskOptions,
+                        PayloadId          = input.PayloadId,
+                        SessionId          = input.SessionId,
+                        Configuration      = input.Configuration,
+                        DataDependencies   = input.DataDependencies,
+                        DataFolder         = dataFolder,
+                        ExpectedOutputKeys = input.ExpectedOutputKeys,
+                        TaskId             = input.TaskId,
+                        TaskOptions        = input.TaskOptions,
                       };
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
       client.Process(new ProcessRequest
                      {
                        CommunicationToken = token,
-                       PayloadId          = payloadId,
-                       SessionId          = sessionId,
-                       Configuration      = configuration,
+                       PayloadId          = input.PayloadId,
+                       SessionId          = input.SessionId,
+                       Configuration      = input.Configuration,
                        DataDependencies =
                        {
-                         dd1,
+                         input.DataDependencies,
                        },
-                       DataFolder = folder,
+                       DataFolder = dataFolder,
                        ExpectedOutputKeys =
                        {
-                         eok1,
-                         //eok2, // Uncomment to test multiple expected output keys (results)
+                         input.ExpectedOutputKeys,
                        },
-                       TaskId      = taskId,
-                       TaskOptions = taskOptions,
+                       TaskId      = input.TaskId,
+                       TaskOptions = input.TaskOptions,
                      });
-
+      // Print information given to data
       logger_.LogInformation("Task Data: {toProcess}",
                              toProcess);
     }
 
-    // print everything in agent storage
-
+    // Print everything in agent storage
     logger_.LogInformation("resultsIds : {results}",
                            storage.NotifiedResults);
 
@@ -179,7 +154,7 @@ internal static class Program
       logger_.LogInformation("Notified result{i} Id: {res}",
                              i,
                              result);
-      var byteArray = File.ReadAllBytes(Path.Combine(folder,
+      var byteArray = File.ReadAllBytes(Path.Combine(dataFolder,
                                                      result));
       logger_.LogInformation("Notified result{i} Data : {str}",
                              i,
@@ -201,5 +176,32 @@ internal static class Program
       logger_.LogInformation("Submitted Task Data : {task}",
                              task.Value);
     }
+  }
+
+  public static async Task<int> Main(string[] args)
+  {
+    // Define the options for the application with their description and default value
+    var path = new Option<string>("--path",
+                                  description: "Path to the json file containing the data needed to rerun the Task.",
+                                  getDefaultValue: () => "Data.json");
+    var dataFolder = new Option<string>("--dataFolder",
+                                        description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
+                                        getDefaultValue: () => Directory.CreateTempSubdirectory()
+                                                                        .FullName);
+
+    // Describe the application and its purpose
+    var rootCommand =
+      new RootCommand("This application allows you to rerun ArmoniK individual task in local. It reads the data in <path>, connect to a worker and rerun the Task.");
+
+    rootCommand.AddOption(path);
+    rootCommand.AddOption(dataFolder);
+
+    // Configure the handler to call the function that will do the work
+    rootCommand.SetHandler(Run,
+                           path,
+                           dataFolder);
+
+    // Parse the command line parameters and call the function that represents the application
+    return await rootCommand.InvokeAsync(args);
   }
 }
