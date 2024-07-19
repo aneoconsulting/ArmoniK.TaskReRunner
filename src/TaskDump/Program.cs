@@ -37,13 +37,14 @@ internal static class Program
   ///   Method for sending task and retrieving their results from ArmoniK
   /// </summary>
   /// <param name="endpoint">The endpoint url of ArmoniK's control plane</param>
+  /// <param name="taskId">TaskId of the task to dump.</param>
   /// <returns>
   ///   Task representing the asynchronous execution of the method
   /// </returns>
   /// <exception cref="Exception">Issues with results from tasks</exception>
   /// <exception cref="ArgumentOutOfRangeException">Unknown response type from control plane</exception>
   internal static async Task Run(string endpoint,
-                                 string task)
+                                 string taskId)
   {
     var channel = GrpcChannelFactory.CreateChannel(new GrpcClient
                                                    {
@@ -57,7 +58,7 @@ internal static class Program
 
     var taskResponse = taskClient.GetTask(new GetTaskRequest
                                           {
-                                            TaskId = task,
+                                            TaskId = taskId,
                                           });
 
     var rawData = new ConcurrentDictionary<string, byte[]?>();
@@ -87,7 +88,7 @@ internal static class Program
     var DumpData = new TaskDump
                    {
                      SessionId          = taskResponse.Task.SessionId,
-                     TaskId             = task,
+                     TaskId             = taskId,
                      TaskOptions        = taskResponse.Task.Options,
                      DataDependencies   = taskResponse.Task.DataDependencies,
                      ExpectedOutputKeys = taskResponse.Task.ExpectedOutputIds,
@@ -118,9 +119,9 @@ internal static class Program
                                       description: "Endpoint for the connection to ArmoniK control plane.",
                                       getDefaultValue: () => "http://localhost:5001");
 
-    var task = new Option<string>("--task",
-                                  description: "TaskId of the task to dump.",
-                                  getDefaultValue: () => "default");
+    var taskId = new Option<string>("--taskId",
+                                    description: "TaskId of the task to dump.",
+                                    getDefaultValue: () => "none");
 
     // Describe the application and its purpose
     var rootCommand = new RootCommand($"A program to extract data for a specific task. Connect to ArmoniK through <{endpoint.Name}>");
@@ -128,12 +129,12 @@ internal static class Program
     // Add the options to the parser
     rootCommand.AddOption(endpoint);
     //rootCommand.AddOption(partition);
-    rootCommand.AddOption(task);
+    rootCommand.AddOption(taskId);
 
     // Configure the handler to call the function that will do the work
     rootCommand.SetHandler(Run,
                            endpoint,
-                           task);
+                           taskId);
 
     // Parse the command line parameters and call the function that represents the application
     return await rootCommand.InvokeAsync(args);
