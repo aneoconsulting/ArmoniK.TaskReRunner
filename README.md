@@ -15,8 +15,28 @@ The Armonik Task ReRunner allows users to rerun tasks using ArmoniK. It provides
 
 1. **Install the .NET Tool**
 
+    _From [nuget.org](https://www.nuget.org/) in command line :_
+
     ```sh
     dotnet tool install -g ArmoniK.TaskReRunner
+    ```
+
+    ---
+    
+    _From the git repository:_
+
+    Clone the repository and move in :
+
+    ```sh
+    git clone git@github.com:aneoconsulting/ArmoniK.TaskReRunner.git
+    cd ArmoniK.TaskReRunner
+    ```
+
+    Create the .Net tool package and install it :
+    
+    ```sh
+    dotnet pack src/TasReRunner/ArmoniK.TaskReRunner.csproj 
+    dotnet tool install --global --add-source pack src/TasReRunner/nupkg ArmoniK.TaskReRunner
     ```
 
 2. **Start Your Worker**
@@ -59,7 +79,3 @@ TaskReRunner --path <DATA.JSON>
 
 - `--path`: "Data.json".
 - `--dataFolder`: A `/tmp` generated subdirectory, for example, `/tmp/xiazOE`.
-
----
-
-Feel free to let me know if there's anything else you'd like to adjust!
