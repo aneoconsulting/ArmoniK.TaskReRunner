@@ -16,7 +16,7 @@
 
 using System.Collections.Generic;
 
-namespace ArmoniK.TaskReRunner;
+namespace ArmoniK.TaskReRunner.Storage;
 
 /// <summary>
 ///   Represents task data with its data dependencies, expected output keys, payload ID, and task ID.

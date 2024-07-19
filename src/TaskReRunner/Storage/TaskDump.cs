@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 using ArmoniK.Api.gRPC.V1;
@@ -21,11 +22,11 @@ using ArmoniK.Api.gRPC.V1;
 namespace ArmoniK.TaskReRunner.Storage;
 
 /// <summary>
-///   Represents all the parameters needed to launch a process.
-///   Properties: CommunicationToken, PayloadId, SessionId, Configuration, DataFolder, TaskId, TaskOptions,
-///   DataDependencies, ExpectedOutputKeys.
+///   Represents all the parameters extracted from ArmoniK required to rerun a task.
+///   Properties: PayloadId, SessionId, Configuration, TaskId, TaskOptions,
+///   DataDependencies, ExpectedOutputKeys, RawData.
 /// </summary>
-public record ProcessData
+public record TaskDump
 {
   /// <summary>
   ///   Gets or sets the session identifier.
@@ -43,24 +44,19 @@ public record ProcessData
   public required string TaskId { get; init; }
 
   /// <summary>
-  ///   Gets or sets the task options for the process. Nullable.
+  ///   Gets or sets the task options for the process.
   /// </summary>
-  public required TaskOptions? TaskOptions { get; init; }
+  public required TaskOptions TaskOptions { get; init; }
 
   /// <summary>
   ///   Gets the list of data dependencies required for the process.
   /// </summary>
-  public ICollection<string> DataDependencies { get; set; } = new List<string>();
+  public ICollection<string> DataDependencies { get; } = new List<string>();
 
   /// <summary>
   ///   Gets the list of expected output keys.
   /// </summary>
-  public ICollection<string> ExpectedOutputKeys { get; set; } = new List<string>();
-
-  /// <summary>
-  ///   Gets or init the communication token required for the process.
-  /// </summary>
-  public required string CommunicationToken { get; init; }
+  public ICollection<string> ExpectedOutputKeys { get; } = new List<string>();
 
   /// <summary>
   ///   Gets or sets the configuration settings for the process.
@@ -68,7 +64,7 @@ public record ProcessData
   public required Configuration Configuration { get; init; }
 
   /// <summary>
-  ///   Gets or sets the folder location for storing data.
+  ///   Get or init a dictionary containing the payload, data dependencies, and expected outputs corresponding byte array.
   /// </summary>
-  public required string DataFolder { get; init; }
+  public ConcurrentDictionary<string, byte[]?> RawData { get; init; } = new();
 }
