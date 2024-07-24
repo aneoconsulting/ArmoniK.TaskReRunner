@@ -41,15 +41,29 @@ The Armonik Task ReRunner allows users to rerun tasks using ArmoniK. It provides
 
 2. **Start Your Worker**
 
-    This project requires a worker launched with the sockets `ComputePlane__WorkerChannel__Address=/tmp/worker.sock` and `ComputePlane__AgentChannel__Address=/tmp/agent.sock`.
-    
-    Here is a command line example to run a C# worker with the correct sockets :
+    This project requires a worker launched on:
+   -  **Linux** with the sockets path `ComputePlane__WorkerChannel__Address=/tmp/worker.sock` and `ComputePlane__AgentChannel__Address=/tmp/agent.sock`,
+
+        Here is a command line example to run a C# worker with the correct sockets :
 
     ```sh
     ComputePlane__WorkerChannel__Address=/tmp/worker.sock ComputePlane__AgentChannel__Address=/tmp/agent.sock dotnet run --project <PATH_TO_PROJECT.CSPROJ>
     ```
 
-    Replace `<PATH_TO_PROJECT.CSPROJ>` with the path to your .csproj file.
+        Replace `<PATH_TO_PROJECT.CSPROJ>` with the path to your .csproj file.
+        
+    ---
+
+   - **Windows** with the sockets path `ComputePlane__WorkerChannel__Address=C:\Users\<username>\AppData\Local\Temp\worker.sock` and `ComputePlane__AgentChannel__Address=C:\Users\<username>\AppData\Local\Temp\agent.sock`
+
+        Here is a command line example to run a C# worker with the correct sockets :
+
+    ```sh
+    ComputePlane__WorkerChannel__Address=`C:\Users\<USERNAME>\AppData\Local\Temp\worker.sock` ComputePlane__AgentChannel__Address=`C:\Users\<USERNAME>\AppData\Local\Temp\agent.sock` dotnet run --project <PATH_TO_PROJECT.CSPROJ>
+    ```
+        Replace <USERNAME> with your computer session username.
+        Replace `<PATH_TO_PROJECT.CSPROJ>` with the path to your .csproj file.
+
 
 ## Prerequisites
 
