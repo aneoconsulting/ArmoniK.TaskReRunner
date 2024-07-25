@@ -103,7 +103,7 @@ internal static class Program
 
     var JSONresult = JsonConvert.SerializeObject(DumpData);
 
-    using (var tw = new StreamWriter("toProcess.json",
+    using (var tw = new StreamWriter($"Task_Id_{taskId}.json",
                                      false))
     {
       tw.WriteLine(JSONresult);
