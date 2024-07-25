@@ -63,11 +63,10 @@ internal static class Program
 
     var rawData = new ConcurrentDictionary<string, byte[]?>();
 
-    //rawData[plop.Task.PayloadId] = resultClient.DownloadResultData(plop.Task.SessionId, plop.Task.PayloadId, CancellationToken.None);
 
     foreach (var data in taskResponse.Task.DataDependencies)
     {
-      if (data != null)
+      if (!string.IsNullOrEmpty(data))
       {
         rawData[data] = await resultClient.DownloadResultData(taskResponse.Task.SessionId,
                                                               data,
@@ -77,7 +76,7 @@ internal static class Program
 
     foreach (var data in taskResponse.Task.ExpectedOutputIds)
     {
-      if (data != null)
+      if (!string.IsNullOrEmpty(data))
       {
         rawData[data] = await resultClient.DownloadResultData(taskResponse.Task.SessionId,
                                                               data,
@@ -97,9 +96,8 @@ internal static class Program
                                        DataChunkMaxSize = resultClient.GetServiceConfiguration(new Empty())
                                                                       .DataChunkMaxSize,
                                      },
-                     RawData = rawData,
-                     PayloadId = Guid.NewGuid()
-                                     .ToString(), // change with plop.Task.PayloadId when in core
+                     RawData   = rawData,
+                     PayloadId = taskResponse.Task.PayloadId, // change with plop.Task.PayloadId when in core
                    };
     var taskdata = taskResponse.Task;
 

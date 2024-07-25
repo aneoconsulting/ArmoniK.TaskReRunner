@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="ArmoniK.Api.Client" Version="3.17.1" />
+		<PackageReference Include="ArmoniK.Api.Client" Version="3.19.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.2" />
 		<PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
 		<ProjectReference Include="..\Common\ArmoniK.TaskReRunner.Common.csproj" />
