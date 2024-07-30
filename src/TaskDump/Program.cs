@@ -84,6 +84,10 @@ internal static class Program
       }
     }
 
+    rawData[taskResponse.Task.PayloadId] = await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                                 taskResponse.Task.PayloadId,
+                                                                                 CancellationToken.None);
+
     var DumpData = new TaskDump
                    {
                      SessionId          = taskResponse.Task.SessionId,
