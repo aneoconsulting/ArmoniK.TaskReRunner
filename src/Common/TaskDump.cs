@@ -14,9 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 
 using ArmoniK.Api.gRPC.V1;
@@ -75,5 +72,15 @@ public record TaskDump
   {
     var res = JsonSerializer.Deserialize<TaskDump>(File.ReadAllText(path));
     return res ?? throw new ArgumentException();
+  }
+  
+  /// <summary>
+  /// 
+  /// </summary>
+  /// <returns></returns>
+  public string Serialize()
+  {
+    var res = JsonSerializer.Serialize(this);
+    return res;
   }
 }
