@@ -50,12 +50,12 @@ public record ProcessData
   /// <summary>
   ///   Gets the list of data dependencies required for the process.
   /// </summary>
-  public ICollection<string> DataDependencies { get; set; } = new List<string>();
+  public ICollection<string> DataDependencies { get; init; } = new List<string>();
 
   /// <summary>
   ///   Gets the list of expected output keys.
   /// </summary>
-  public ICollection<string> ExpectedOutputKeys { get; set; } = new List<string>();
+  public ICollection<string> ExpectedOutputKeys { get; init; } = new List<string>();
 
   /// <summary>
   ///   Gets or init the communication token required for the process.
