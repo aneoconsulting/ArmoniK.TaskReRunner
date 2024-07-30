@@ -14,8 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Concurrent;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 
 using ArmoniK.Api.gRPC.V1;
 
@@ -64,7 +66,14 @@ public record TaskDump
   public required Configuration Configuration { get; init; }
 
   /// <summary>
-  ///   Get or init a dictionary containing the payload, data dependencies, and expected outputs corresponding byte array.
+  ///   Deserialize the text in the file in path to create a TaskDump object.
   /// </summary>
-  public ConcurrentDictionary<string, byte[]?> RawData { get; init; } = new();
+  /// <param name="path">The path to the file to deserialize</param>
+  /// <returns>A TaskDump object deserialized from the file in path</returns>
+  /// <exception cref="ArgumentException"> Throw if the Deserialization fail</exception>
+  public static TaskDump Deserialize(string path)
+  {
+    var res = JsonSerializer.Deserialize<TaskDump>(File.ReadAllText(path));
+    return res ?? throw new ArgumentException();
+  }
 }
