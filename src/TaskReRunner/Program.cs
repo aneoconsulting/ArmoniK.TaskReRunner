@@ -17,7 +17,6 @@
 using System;
 using System.CommandLine;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 using ArmoniK.Api.Common.Channel.Utils;
@@ -27,8 +26,6 @@ using ArmoniK.TaskReRunner.Storage;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-
-using Newtonsoft.Json;
 
 using Serilog;
 
@@ -69,33 +66,13 @@ internal static class Program
 
     if (!File.Exists(path))
     {
-      logger_.LogError("ERROR: {path} doesn't exist",
+      logger_.LogError("ERROR: No JSON file in {path} ",
                        path);
       return;
     }
 
     //Deserialize the Data in the Json
-    var serializer = new JsonSerializer();
-    var input = (TaskDump)(serializer.Deserialize(File.OpenText(path),
-                                                  typeof(TaskDump)) ?? throw new ArgumentException());
-    if (input.RawData.IsEmpty)
-    {
-      logger_.LogError("ERROR: The Data in {input} doesn't contain any RawData",
-                       input);
-      return;
-    }
-
-    if (!Directory.Exists(dataFolder))
-    {
-      Directory.CreateDirectory(dataFolder);
-    }
-
-    foreach (var id in input.RawData)
-    {
-      File.WriteAllBytesAsync(Path.Combine(dataFolder,
-                                           id.Key),
-                              id.Value ?? Encoding.ASCII.GetBytes(""));
-    }
+    var input = TaskDump.Deserialize(path);
 
     // Create an AgentStorage to keep the Agent Data After Process
     var storage = new AgentStorage();
@@ -186,8 +163,7 @@ internal static class Program
                                   getDefaultValue: () => "Data.json");
     var dataFolder = new Option<string>("--dataFolder",
                                         description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
-                                        getDefaultValue: () => Directory.CreateTempSubdirectory()
-                                                                        .FullName);
+                                        getDefaultValue: () => Path.GetTempPath());
 
     // Describe the application and its purpose
     var rootCommand =
