@@ -18,6 +18,7 @@ using System;
 using System.Collections.Concurrent;
 using System.CommandLine;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,13 +39,17 @@ internal static class Program
   /// </summary>
   /// <param name="endpoint">The endpoint url of ArmoniK's control plane</param>
   /// <param name="taskId">TaskId of the task to dump.</param>
+  /// <param name="dataFolder">Name of the folder containing all required binary</param>
+  /// <param name="name">Newly created Json file name</param>
   /// <returns>
   ///   Task representing the asynchronous execution of the method
   /// </returns>
   /// <exception cref="Exception">Issues with results from tasks</exception>
   /// <exception cref="ArgumentOutOfRangeException">Unknown response type from control plane</exception>
   internal static async Task Run(string endpoint,
-                                 string taskId)
+                                 string taskId,
+                                 string dataFolder,
+                                 string name)
   {
     var channel = GrpcChannelFactory.CreateChannel(new GrpcClient
                                                    {
@@ -61,16 +66,21 @@ internal static class Program
                                             TaskId = taskId,
                                           });
 
-    var rawData = new ConcurrentDictionary<string, byte[]?>();
 
+    if (!Directory.Exists(dataFolder))
+    {
+      Directory.CreateDirectory(dataFolder);
+    }
 
     foreach (var data in taskResponse.Task.DataDependencies)
     {
       if (!string.IsNullOrEmpty(data))
       {
-        rawData[data] = await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                              data,
-                                                              CancellationToken.None);
+        await File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                                   data),
+                                      await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                            data,
+                                                                            CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
       }
     }
 
@@ -78,15 +88,20 @@ internal static class Program
     {
       if (!string.IsNullOrEmpty(data))
       {
-        rawData[data] = await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                              data,
-                                                              CancellationToken.None);
+        await File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                                   data),
+                                      await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                            data,
+                                                                            CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
       }
     }
 
-    rawData[taskResponse.Task.PayloadId] = await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                                                 taskResponse.Task.PayloadId,
-                                                                                 CancellationToken.None);
+    await File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                               taskResponse.Task.PayloadId),
+                                  await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                        taskResponse.Task.PayloadId,
+                                                                        CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+
 
     var DumpData = new TaskDump
                    {
@@ -100,12 +115,9 @@ internal static class Program
                                        DataChunkMaxSize = resultClient.GetServiceConfiguration(new Empty())
                                                                       .DataChunkMaxSize,
                                      },
-                     RawData   = rawData,
-                     PayloadId = taskResponse.Task.PayloadId, // change with plop.Task.PayloadId when in core
+                     PayloadId = taskResponse.Task.PayloadId,
                    };
-    var taskdata = taskResponse.Task;
-
-    var JSONresult = JsonConvert.SerializeObject(DumpData);
+    var JSONresult = DumpData.Serialize();
 
     using (var tw = new StreamWriter($"Task_Id_{taskId}.json",
                                      false))
@@ -125,18 +137,32 @@ internal static class Program
                                     description: "TaskId of the task to dump.",
                                     getDefaultValue: () => "none");
 
+    var dataFolder = new Option<string>("--dataFolder",
+                                        description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
+                                        getDefaultValue: () => Path.GetTempPath());
+
+    var name = new Option<string>("--name",
+                                  description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
+                                  getDefaultValue: () => $"Task_Id_{taskId}.json");
     // Describe the application and its purpose
     var rootCommand = new RootCommand($"A program to extract data for a specific task. Connect to ArmoniK through <{endpoint.Name}>");
 
     // Add the options to the parser
     rootCommand.AddOption(endpoint);
-    //rootCommand.AddOption(partition);
+
     rootCommand.AddOption(taskId);
+
+    rootCommand.AddOption(dataFolder);
+
+    rootCommand.AddOption(name);
+
 
     // Configure the handler to call the function that will do the work
     rootCommand.SetHandler(Run,
                            endpoint,
-                           taskId);
+                           taskId,
+                           dataFolder,
+                           name);
 
     // Parse the command line parameters and call the function that represents the application
     return await rootCommand.InvokeAsync(args);
