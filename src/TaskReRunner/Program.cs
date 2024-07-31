@@ -84,41 +84,31 @@ internal static class Program
                                     storage,
                                     loggerConfiguration_);
       // Create a class with all values use to process a task 
-      var toProcess = new ProcessData
+      var toProcess = new ProcessRequest
                       {
                         CommunicationToken = token,
                         PayloadId          = input.PayloadId,
                         SessionId          = input.SessionId,
                         Configuration      = input.Configuration,
-                        DataDependencies   = input.DataDependencies,
-                        DataFolder         = dataFolder,
-                        ExpectedOutputKeys = input.ExpectedOutputKeys,
-                        TaskId             = input.TaskId,
-                        TaskOptions        = input.TaskOptions,
+                        DataDependencies =
+                        {
+                          input.DataDependencies,
+                        },
+                        DataFolder = dataFolder,
+                        ExpectedOutputKeys =
+                        {
+                          input.ExpectedOutputKeys,
+                        },
+                        TaskId      = input.TaskId,
+                        TaskOptions = input.TaskOptions,
                       };
 
-      // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
-      client.Process(new ProcessRequest
-                     {
-                       CommunicationToken = token,
-                       PayloadId          = input.PayloadId,
-                       SessionId          = input.SessionId,
-                       Configuration      = input.Configuration,
-                       DataDependencies =
-                       {
-                         input.DataDependencies,
-                       },
-                       DataFolder = dataFolder,
-                       ExpectedOutputKeys =
-                       {
-                         input.ExpectedOutputKeys,
-                       },
-                       TaskId      = input.TaskId,
-                       TaskOptions = input.TaskOptions,
-                     });
       // Print information given to data
       logger_.LogInformation("Task Data: {toProcess}",
                              toProcess);
+
+      // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
+      client.Process(toProcess);
     }
 
     // Print everything in agent storage
