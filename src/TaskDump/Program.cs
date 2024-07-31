@@ -30,7 +30,7 @@ using ArmoniK.Api.gRPC.V1.Results;
 using ArmoniK.Api.gRPC.V1.Tasks;
 using ArmoniK.TaskReRunner.Common;
 
-using Newtonsoft.Json;
+using TaskStatus = ArmoniK.Api.gRPC.V1.TaskStatus;
 
 internal static class Program
 {
@@ -96,11 +96,14 @@ internal static class Program
       }
     }
 
-    await File.WriteAllBytesAsync(Path.Combine(dataFolder,
-                                               taskResponse.Task.PayloadId),
-                                  await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                                        taskResponse.Task.PayloadId,
-                                                                        CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+    if (taskResponse.Task.Status != TaskStatus.Completed)
+    {
+      await File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                                 taskResponse.Task.PayloadId),
+                                    await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                          taskResponse.Task.PayloadId,
+                                                                          CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+    }
 
 
     var DumpData = new TaskDump
@@ -119,7 +122,7 @@ internal static class Program
                    };
     var JSONresult = DumpData.Serialize();
 
-    using (var tw = new StreamWriter($"Task_Id_{taskId}.json",
+    using (var tw = new StreamWriter(name,
                                      false))
     {
       tw.WriteLine(JSONresult);
@@ -142,8 +145,8 @@ internal static class Program
                                         getDefaultValue: () => Path.GetTempPath());
 
     var name = new Option<string>("--name",
-                                  description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
-                                  getDefaultValue: () => $"Task_Id_{taskId}.json");
+                                  description: "Newly created JSON file name.",
+                                  getDefaultValue: () => "Task_Id.json");
     // Describe the application and its purpose
     var rootCommand = new RootCommand($"A program to extract data for a specific task. Connect to ArmoniK through <{endpoint.Name}>");
 
@@ -155,7 +158,6 @@ internal static class Program
     rootCommand.AddOption(dataFolder);
 
     rootCommand.AddOption(name);
-
 
     // Configure the handler to call the function that will do the work
     rootCommand.SetHandler(Run,
