@@ -73,11 +73,11 @@ public record TaskDump
     var res = JsonSerializer.Deserialize<TaskDump>(File.ReadAllText(path));
     return res ?? throw new ArgumentException();
   }
-  
+
   /// <summary>
-  /// 
+  ///   Serialize the current TaskDump object.
   /// </summary>
-  /// <returns></returns>
+  /// <returns>A string containing the TaskDump object in a json format</returns>
   public string Serialize()
   {
     var res = JsonSerializer.Serialize(this);
