@@ -53,12 +53,12 @@ public record TaskDump
   /// <summary>
   ///   Gets the list of data dependencies required for the process.
   /// </summary>
-  public ICollection<string> DataDependencies { get; } = new List<string>();
+  public ICollection<string> DataDependencies { get; init; } = new List<string>();
 
   /// <summary>
   ///   Gets the list of expected output keys.
   /// </summary>
-  public ICollection<string> ExpectedOutputKeys { get; } = new List<string>();
+  public ICollection<string> ExpectedOutputKeys { get; init; } = new List<string>();
 
   /// <summary>
   ///   Gets or sets the configuration settings for the process.
