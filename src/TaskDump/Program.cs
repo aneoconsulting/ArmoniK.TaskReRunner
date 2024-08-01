@@ -15,7 +15,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Concurrent;
 using System.CommandLine;
 using System.IO;
 using System.Text;
@@ -28,7 +27,7 @@ using ArmoniK.Api.Client.Submitter;
 using ArmoniK.Api.gRPC.V1;
 using ArmoniK.Api.gRPC.V1.Results;
 using ArmoniK.Api.gRPC.V1.Tasks;
-using ArmoniK.TaskReRunner.Common;
+using ArmoniK.Api.gRPC.V1.Worker;
 
 using TaskStatus = ArmoniK.Api.gRPC.V1.TaskStatus;
 
@@ -106,13 +105,19 @@ internal static class Program
     }
 
 
-    var DumpData = new TaskDump
+    var DumpData = new ProcessRequest
                    {
-                     SessionId          = taskResponse.Task.SessionId,
-                     TaskId             = taskId,
-                     TaskOptions        = taskResponse.Task.Options,
-                     DataDependencies   = taskResponse.Task.DataDependencies,
-                     ExpectedOutputKeys = taskResponse.Task.ExpectedOutputIds,
+                     SessionId   = taskResponse.Task.SessionId,
+                     TaskId      = taskId,
+                     TaskOptions = taskResponse.Task.Options,
+                     DataDependencies =
+                     {
+                       taskResponse.Task.DataDependencies,
+                     },
+                     ExpectedOutputKeys =
+                     {
+                       taskResponse.Task.ExpectedOutputIds,
+                     },
                      Configuration = new Configuration
                                      {
                                        DataChunkMaxSize = resultClient.GetServiceConfiguration(new Empty())
@@ -120,7 +125,7 @@ internal static class Program
                                      },
                      PayloadId = taskResponse.Task.PayloadId,
                    };
-    var JSONresult = DumpData.Serialize();
+    var JSONresult = DumpData.ToString();
 
     using (var tw = new StreamWriter(name,
                                      false))
