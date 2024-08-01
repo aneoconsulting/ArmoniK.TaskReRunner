@@ -101,6 +101,7 @@ internal static class Program
       var ret = client.Process(input);
       logger_.LogInformation("Task Output : {ret}",
                              ret.ToString());
+
     }
 
     // Print everything in agent storage
