@@ -34,16 +34,16 @@ using TaskStatus = ArmoniK.Api.gRPC.V1.TaskStatus;
 internal static class Program
 {
   /// <summary>
-  ///   Method for sending task and retrieving their results from ArmoniK
+  ///   Method to retrieve information of task through its id from ArmoniK
   /// </summary>
-  /// <param name="endpoint">The endpoint url of ArmoniK's control plane</param>
-  /// <param name="taskId">TaskId of the task to dump.</param>
-  /// <param name="dataFolder">Name of the folder containing all required binary</param>
-  /// <param name="name">Newly created Json file name</param>
+  /// <param name="endpoint">The endpoint URL of ArmoniK's control plane.</param>
+  /// <param name="taskId">The TaskId of the task to retrieve.</param>
+  /// <param name="dataFolder">The folder to store all required binaries.</param>
+  /// <param name="name">The name of the newly created JSON file.</param>
   /// <returns>
   ///   Task representing the asynchronous execution of the method
   /// </returns>
-  /// <exception cref="Exception">Issues with results from tasks</exception>
+  /// <exception cref="Exception">Thrown when there are issues with the results from tasks.</exception>
   /// <exception cref="ArgumentOutOfRangeException">Unknown response type from control plane</exception>
   internal static async Task Run(string endpoint,
                                  string taskId,
@@ -55,56 +55,19 @@ internal static class Program
                                                      Endpoint = endpoint,
                                                    });
 
-    // Create client for events listening
+    // Create clients for tasks and results.
     var taskClient   = new Tasks.TasksClient(channel);
     var resultClient = new Results.ResultsClient(channel);
 
-
+    // Request task information from ArmoniK using the TaskId.
     var taskResponse = taskClient.GetTask(new GetTaskRequest
                                           {
                                             TaskId = taskId,
                                           });
 
+    Console.WriteLine(taskResponse);
 
-    if (!Directory.Exists(dataFolder))
-    {
-      Directory.CreateDirectory(dataFolder);
-    }
-
-    foreach (var data in taskResponse.Task.DataDependencies)
-    {
-      if (!string.IsNullOrEmpty(data))
-      {
-        await File.WriteAllBytesAsync(Path.Combine(dataFolder,
-                                                   data),
-                                      await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                                            data,
-                                                                            CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
-      }
-    }
-
-    foreach (var data in taskResponse.Task.ExpectedOutputIds)
-    {
-      if (!string.IsNullOrEmpty(data))
-      {
-        await File.WriteAllBytesAsync(Path.Combine(dataFolder,
-                                                   data),
-                                      await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                                            data,
-                                                                            CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
-      }
-    }
-
-    if (taskResponse.Task.Status != TaskStatus.Completed)
-    {
-      await File.WriteAllBytesAsync(Path.Combine(dataFolder,
-                                                 taskResponse.Task.PayloadId),
-                                    await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                                          taskResponse.Task.PayloadId,
-                                                                          CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
-    }
-
-
+    // Create a ProcessRequest object with information obtained from the task request.
     var DumpData = new ProcessRequest
                    {
                      SessionId   = taskResponse.Task.SessionId,
@@ -125,12 +88,43 @@ internal static class Program
                                      },
                      PayloadId = taskResponse.Task.PayloadId,
                    };
+    // Convert the ProcessRequest object to JSON.
     var JSONresult = DumpData.ToString();
 
+    // Write the JSON to a file with the specified name.
     using (var tw = new StreamWriter(name,
                                      false))
     {
       tw.WriteLine(JSONresult);
+    }
+
+    // Create the dataFolder directory if it doesn't exist.
+    if (!Directory.Exists(dataFolder))
+    {
+      Directory.CreateDirectory(dataFolder);
+    }
+
+    // Save DataDependencies data to files in the dataFolder named <resultId>.
+    foreach (var data in taskResponse.Task.DataDependencies)
+    {
+      if (!string.IsNullOrEmpty(data))
+      {
+        await File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                                   data),
+                                      await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                            data,
+                                                                            CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+      }
+    }
+
+    // Save Payload data to a file in the dataFolder named <PayloadID>.
+    if (taskResponse.Task.Status != TaskStatus.Completed)
+    {
+      await File.WriteAllBytesAsync(Path.Combine(dataFolder,
+                                                 taskResponse.Task.PayloadId),
+                                    await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                          taskResponse.Task.PayloadId,
+                                                                          CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
     }
   }
 
@@ -142,15 +136,15 @@ internal static class Program
                                       getDefaultValue: () => "http://localhost:5001");
 
     var taskId = new Option<string>("--taskId",
-                                    description: "TaskId of the task to dump.",
+                                    description: "TaskId of the task to retrieve",
                                     getDefaultValue: () => "none");
 
     var dataFolder = new Option<string>("--dataFolder",
-                                        description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
+                                        description: "The absolute path to the folder for storing binary data required to rerun a task.",
                                         getDefaultValue: () => Path.GetTempPath());
 
     var name = new Option<string>("--name",
-                                  description: "Newly created JSON file name.",
+                                  description: "The name of the JSON file to be created.",
                                   getDefaultValue: () => "Task_Id.json");
     // Describe the application and its purpose
     var rootCommand = new RootCommand($"A program to extract data for a specific task. Connect to ArmoniK through <{endpoint.Name}>");
