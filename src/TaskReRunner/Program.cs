@@ -98,7 +98,9 @@ internal static class Program
                              input);
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
-      client.Process(input);
+      var ret = client.Process(input);
+      logger_.LogInformation("Task Output : {ret}",
+                             ret.ToString());
     }
 
     // Print everything in agent storage
