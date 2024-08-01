@@ -22,7 +22,6 @@ using System.Threading.Tasks;
 using ArmoniK.Api.Common.Channel.Utils;
 using ArmoniK.Api.Common.Options;
 using ArmoniK.Api.gRPC.V1.Worker;
-using ArmoniK.TaskReRunner.Common;
 using ArmoniK.TaskReRunner.Storage;
 
 using Microsoft.Extensions.Logging;
@@ -73,7 +72,16 @@ internal static class Program
     }
 
     //Deserialize the Data in the Json
-    var input = TaskDump.Deserialize(path);
+    var input = ProcessRequest.Parser.ParseJson(File.ReadAllText(path));
+
+    // Create a CommunicationToken if there isn't
+    if (string.IsNullOrEmpty(input.CommunicationToken))
+    {
+      input.CommunicationToken = token;
+    }
+
+    // Set the dataFolder 
+    input.DataFolder = dataFolder;
 
     // Create an AgentStorage to keep the Agent Data After Process
     var storage = new AgentStorage();
@@ -81,45 +89,16 @@ internal static class Program
     // Scope for the Task to run 
     {
       // Launch an Agent server to listen the worker
-      using var server = new Server(Path.GetTempPath() + "agent.sock",
+      using var server = new Server("/tmp/agent.sock",
                                     storage,
                                     loggerConfiguration_);
-      // Create a class with all values use to process a task 
-      var toProcess = new ProcessData
-                      {
-                        CommunicationToken = token,
-                        PayloadId          = input.PayloadId,
-                        SessionId          = input.SessionId,
-                        Configuration      = input.Configuration,
-                        DataDependencies   = input.DataDependencies,
-                        DataFolder         = dataFolder,
-                        ExpectedOutputKeys = input.ExpectedOutputKeys,
-                        TaskId             = input.TaskId,
-                        TaskOptions        = input.TaskOptions,
-                      };
+
+      // Print information given to data
+      logger_.LogInformation("Task Data: {input}",
+                             input);
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
-      client.Process(new ProcessRequest
-                     {
-                       CommunicationToken = token,
-                       PayloadId          = input.PayloadId,
-                       SessionId          = input.SessionId,
-                       Configuration      = input.Configuration,
-                       DataDependencies =
-                       {
-                         input.DataDependencies,
-                       },
-                       DataFolder = dataFolder,
-                       ExpectedOutputKeys =
-                       {
-                         input.ExpectedOutputKeys,
-                       },
-                       TaskId      = input.TaskId,
-                       TaskOptions = input.TaskOptions,
-                     });
-      // Print information given to data
-      logger_.LogInformation("Task Data: {toProcess}",
-                             toProcess);
+      client.Process(input);
     }
 
     // Print everything in agent storage
