@@ -72,7 +72,16 @@ internal static class Program
     }
 
     //Deserialize the Data in the Json
-    var input = TaskDump.Deserialize(path);
+    var input = ProcessRequest.Parser.ParseJson(File.ReadAllText(path));
+
+    // Create a CommunicationToken if there isn't
+    if (string.IsNullOrEmpty(input.CommunicationToken))
+    {
+      input.CommunicationToken = token;
+    }
+
+    // Set the dataFolder 
+    input.DataFolder = dataFolder;
 
     // Create an AgentStorage to keep the Agent Data After Process
     var storage = new AgentStorage();
@@ -83,32 +92,13 @@ internal static class Program
       using var server = new Server("/tmp/agent.sock",
                                     storage,
                                     loggerConfiguration_);
-      // Create a class with all values use to process a task 
-      var toProcess = new ProcessRequest
-                      {
-                        CommunicationToken = token,
-                        PayloadId          = input.PayloadId,
-                        SessionId          = input.SessionId,
-                        Configuration      = input.Configuration,
-                        DataDependencies =
-                        {
-                          input.DataDependencies,
-                        },
-                        DataFolder = dataFolder,
-                        ExpectedOutputKeys =
-                        {
-                          input.ExpectedOutputKeys,
-                        },
-                        TaskId      = input.TaskId,
-                        TaskOptions = input.TaskOptions,
-                      };
 
       // Print information given to data
-      logger_.LogInformation("Task Data: {toProcess}",
-                             toProcess);
+      logger_.LogInformation("Task Data: {input}",
+                             input);
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
-      client.Process(toProcess);
+      client.Process(input);
     }
 
     // Print everything in agent storage
