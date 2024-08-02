@@ -29,7 +29,6 @@ internal class AgentStorage
   /// </summary>
   public readonly HashSet<string> NotifiedResults = new();
 
-
   /// <summary>
   ///   The data obtained through the CreateResult or CreateMetaDataResult call. This dictionary stores results keyed by
   ///   their unique IDs.
