@@ -1,0 +1,1 @@
+{ "sessionId": "b65ed3dc-878e-41eb-b7e1-d49ba1d49e23", "taskId": "ffd1c1c1-c9ac-42cd-a0c4-20675018f881", "taskOptions": { "options": { "UseCase": "Launch" }, "maxDuration": "3600s", "maxRetries": 2, "priority": 1, "partitionId": "stasking" }, "expectedOutputKeys": [ "0e473185-6475-4b17-b5bb-2f589e7fc1a7" ], "configuration": { "dataChunkMaxSize": 84000 } }

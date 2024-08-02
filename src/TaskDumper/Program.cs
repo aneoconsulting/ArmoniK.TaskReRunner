@@ -31,6 +31,8 @@ using ArmoniK.Api.gRPC.V1.Worker;
 
 using TaskStatus = ArmoniK.Api.gRPC.V1.TaskStatus;
 
+namespace ArmoniK.TaskDumper;
+
 internal static class Program
 {
   /// <summary>
@@ -88,6 +90,7 @@ internal static class Program
                                      },
                      PayloadId = taskResponse.Task.PayloadId,
                    };
+
     // Convert the ProcessRequest object to JSON.
     var JSONresult = DumpData.ToString();
 

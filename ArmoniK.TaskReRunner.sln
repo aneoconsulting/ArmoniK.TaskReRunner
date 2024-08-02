@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmoniK.TaskReRunner", "src\TaskReRunner\ArmoniK.TaskReRunner.csproj", "{4734A3B6-02C9-4F53-8127-A97F2F6D4DDD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmoniK.TaskDump", "src\TaskDump\ArmoniK.TaskDump.csproj", "{C4138DF6-9BB5-461F-A17B-C9C1E2DA3C94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmoniK.TaskDumper", "src\TaskDump\ArmoniK.TaskDumper.csproj", "{C4138DF6-9BB5-461F-A17B-C9C1E2DA3C94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
