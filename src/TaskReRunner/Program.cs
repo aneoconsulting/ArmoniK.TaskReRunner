@@ -54,7 +54,7 @@ internal static class Program
     // Set up the gRPC channel with the specified address and a null logger for the provider
     var channel = new GrpcChannelProvider(new GrpcChannel
                                           {
-                                            Address = "/tmp/worker.sock",
+                                            Address = Path.GetTempPath() + "worker.sock",
                                           },
                                           new NullLogger<GrpcChannelProvider>()).Get();
     // Create the CommunicationToken
@@ -98,7 +98,9 @@ internal static class Program
                              input);
 
       // Call the Process method on the gRPC client `client` of type Worker.WorkerClient
-      client.Process(input);
+      var ret = client.Process(input);
+      logger_.LogInformation("Task Output : {ret}",
+                             ret.ToString());
     }
 
     // Print everything in agent storage
