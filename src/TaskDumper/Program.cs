@@ -31,6 +31,8 @@ using ArmoniK.Api.gRPC.V1.Worker;
 
 using TaskStatus = ArmoniK.Api.gRPC.V1.TaskStatus;
 
+namespace ArmoniK.TaskDumper;
+
 internal static class Program
 {
   /// <summary>
