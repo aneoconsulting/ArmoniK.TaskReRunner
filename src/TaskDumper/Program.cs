@@ -29,6 +29,8 @@ using ArmoniK.Api.gRPC.V1.Results;
 using ArmoniK.Api.gRPC.V1.Tasks;
 using ArmoniK.Api.gRPC.V1.Worker;
 
+using Microsoft.Extensions.Configuration;
+
 using TaskStatus = ArmoniK.Api.gRPC.V1.TaskStatus;
 
 namespace ArmoniK.TaskDumper;
@@ -47,15 +49,17 @@ internal static class Program
   /// </returns>
   /// <exception cref="Exception">Thrown when there are issues with the results from tasks.</exception>
   /// <exception cref="ArgumentOutOfRangeException">Unknown response type from control plane</exception>
-  internal static async Task Run(string endpoint,
-                                 string taskId,
-                                 string dataFolder,
-                                 string name)
+  internal static async Task Run(string      endpoint,
+                                 string      taskId,
+                                 string      dataFolder,
+                                 string      name,
+                                 GrpcClient? grpcClientOptions)
   {
-    var channel = GrpcChannelFactory.CreateChannel(new GrpcClient
-                                                   {
-                                                     Endpoint = endpoint,
-                                                   });
+    Console.WriteLine(grpcClientOptions);
+    var channel = await GrpcChannelFactory.CreateChannelAsync(grpcClientOptions ?? new GrpcClient
+                                                                                   {
+                                                                                     Endpoint = endpoint,
+                                                                                   });
 
     // Create clients for tasks and results.
     var taskClient   = new Tasks.TasksClient(channel);
@@ -97,7 +101,7 @@ internal static class Program
     using (var tw = new StreamWriter(name,
                                      false))
     {
-      tw.WriteLine(JSONresult);
+      await tw.WriteLineAsync(JSONresult);
     }
 
     // Create the dataFolder directory if it doesn't exist.
@@ -132,6 +136,18 @@ internal static class Program
 
   public static async Task<int> Main(string[] args)
   {
+    // Load configuration from environment variables and appsettings.json
+    var configuration = new ConfigurationBuilder().AddInMemoryCollection()
+                                                  .AddJsonFile("appsettings.json",
+                                                               true,
+                                                               false)
+                                                  .AddEnvironmentVariables()
+                                                  .Build();
+
+    // Bind the configuration to the GrpcClient class
+    var grpcClientOptions = configuration.GetSection("GrpcClientOptions")
+                                         .Get<GrpcClient>();
+
     // Define the options for the application with their description and default value
     var endpoint = new Option<string>("--endpoint",
                                       description: "Endpoint for the connection to ArmoniK control plane.",
@@ -161,7 +177,14 @@ internal static class Program
     rootCommand.AddOption(name);
 
     // Configure the handler to call the function that will do the work
-    rootCommand.SetHandler(Run,
+    rootCommand.SetHandler((endpointValue,
+                            taskIdValue,
+                            dataFolderValue,
+                            nameValue) => Run(endpointValue,
+                                              taskIdValue,
+                                              dataFolderValue,
+                                              nameValue,
+                                              grpcClientOptions),
                            endpoint,
                            taskId,
                            dataFolder,
