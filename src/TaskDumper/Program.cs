@@ -140,7 +140,7 @@ internal static class Program
     var configuration = new ConfigurationBuilder().AddInMemoryCollection()
                                                   .AddJsonFile("appsettings.json",
                                                                true,
-                                                               true)
+                                                               false)
                                                   .AddEnvironmentVariables()
                                                   .Build();
 
@@ -189,7 +189,6 @@ internal static class Program
                            taskId,
                            dataFolder,
                            name);
-    ;
 
     // Parse the command line parameters and call the function that represents the application
     return await rootCommand.InvokeAsync(args);
