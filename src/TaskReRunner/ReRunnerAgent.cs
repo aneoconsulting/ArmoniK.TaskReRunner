@@ -30,7 +30,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ArmoniK.TaskReRunner;
 
-internal class ReRunnerAgent : Agent.AgentBase
+public class ReRunnerAgent : Agent.AgentBase
 {
   private readonly ILogger<ReRunnerAgent> logger_;
   private readonly AgentStorage           storage_;
