@@ -141,9 +141,12 @@ public class ReRunnerAgentTest
                               },
                             },
                             new request());
-    var result = _storage.NotifiedResults.Contains("r1") && _storage.NotifiedResults.Contains("r2") && _storage.NotifiedResults.Contains("r3");
-    Assert.That(result,
-                Is.True);
+    Assert.Contains("r1",
+                    _storage.NotifiedResults.ToList());
+    Assert.Contains("r2",
+                    _storage.NotifiedResults.ToList());
+    Assert.Contains("r3",
+                    _storage.NotifiedResults.ToList());
   }
 
 

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmoniK.TaskReRunner", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmoniK.TaskDumper", "src\TaskDumper\ArmoniK.TaskDumper.csproj", "{C4138DF6-9BB5-461F-A17B-C9C1E2DA3C94}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmoniK.TaskReRunner.Test", "ArmoniK.TaskReRunner.Test\ArmoniK.TaskReRunner.Test.csproj", "{FDB4866A-65A0-4396-BC98-737812965555}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmoniK.TaskReRunner.Test", "test\ArmoniK.TaskReRunner.Test\ArmoniK.TaskReRunner.Test.csproj", "{FDB4866A-65A0-4396-BC98-737812965555}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

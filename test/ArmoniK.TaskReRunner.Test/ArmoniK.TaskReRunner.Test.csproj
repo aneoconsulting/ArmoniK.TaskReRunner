@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\TaskReRunner\ArmoniK.TaskReRunner.csproj" />
+    <ProjectReference Include="..\..\src\TaskReRunner\ArmoniK.TaskReRunner.csproj" />
   </ItemGroup>
 
   <ItemGroup>

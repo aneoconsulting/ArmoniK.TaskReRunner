@@ -117,7 +117,7 @@ public class ReRunnerAgent : Agent.AgentBase
                                                            SessionId = request.SessionId,
                                                            Data      = null,
                                                          };
-                                           if (storage_.Results.ContainsKey(resultId))
+                                           if (!storage_.Results.ContainsKey(resultId))
                                            {
                                              storage_.Results[resultId] = current;
                                            }
