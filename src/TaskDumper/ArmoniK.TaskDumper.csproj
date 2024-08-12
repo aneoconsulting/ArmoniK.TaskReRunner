@@ -4,7 +4,16 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>TaskDumper</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Company>ANEO</Company>
+    <Copyright>Copyright (C) ANEO, 2021-2022</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/aneoconsulting/ArmoniK.TaskReRunner</RepositoryUrl>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="ArmoniK.Api.Client" Version="3.19.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
