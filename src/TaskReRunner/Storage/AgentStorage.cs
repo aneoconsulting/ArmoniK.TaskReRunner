@@ -22,7 +22,7 @@ namespace ArmoniK.TaskReRunner.Storage;
 /// <summary>
 ///   A storage class to keep Tasks and Result data.
 /// </summary>
-internal class AgentStorage
+public class AgentStorage
 {
   /// <summary>
   ///   The data obtained through the notified result call. This set contains the IDs of the results that have been notified.

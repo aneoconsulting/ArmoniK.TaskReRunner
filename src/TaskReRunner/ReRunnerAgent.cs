@@ -30,7 +30,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ArmoniK.TaskReRunner;
 
-internal class ReRunnerAgent : Agent.AgentBase
+public class ReRunnerAgent : Agent.AgentBase
 {
   private readonly ILogger<ReRunnerAgent> logger_;
   private readonly AgentStorage           storage_;
@@ -117,7 +117,7 @@ internal class ReRunnerAgent : Agent.AgentBase
                                                            SessionId = request.SessionId,
                                                            Data      = null,
                                                          };
-                                           if (storage_.Results.ContainsKey(resultId))
+                                           if (!storage_.Results.ContainsKey(resultId))
                                            {
                                              storage_.Results[resultId] = current;
                                            }
