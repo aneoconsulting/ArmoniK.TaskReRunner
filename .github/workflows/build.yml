@@ -30,6 +30,28 @@ jobs:
     - name: Print version
       run: echo VERSION ${{ steps.genver.outputs.version }} >> $GITHUB_STEP_SUMMARY
  
+  unitTest:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      with:
+        ref: ${{ github.ref }}
+        submodules: true
+
+    - name: Run tests
+      run: |
+        cd test/ArmoniK.TaskReRunner.Test/
+        dotnet test --logger "trx;LogFileName=test-results.trx" -p:RunAnalyzers=false -p:WarningLevel=0
+
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Test - ubuntu test/ArmoniK.TaskReRunner.Test/
+        path: test/ArmoniK.TaskReRunner.Test/TestResults/test-results.trx
+        reporter: dotnet-trx
+
   publish-nuget:
     strategy:
       matrix:
