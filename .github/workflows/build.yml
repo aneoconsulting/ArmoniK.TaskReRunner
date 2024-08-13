@@ -31,6 +31,12 @@ jobs:
       run: echo VERSION ${{ steps.genver.outputs.version }} >> $GITHUB_STEP_SUMMARY
  
   publish-nuget:
+    strategy:
+      matrix:
+        projects:
+          - src/TaskReRunner/ArmoniK.TaskReRunner.csproj
+          - src/TaskDumper/ArmoniK.TaskDumper.csproj
+      fail-fast: false
     runs-on: ubuntu-latest
     needs:
       - versionning
@@ -44,12 +50,12 @@ jobs:
 
     - name: Build the package
       run: |
-        dotnet build src/TaskReRunner/ArmoniK.TaskReRunner.csproj -c Release -p:RunAnalyzers=false -p:WarningLevel=0
+        dotnet build ${{ matrix.projects }} -c Release -p:RunAnalyzers=false -p:WarningLevel=0
 
     - name: Pack the package
       run: |
-        dotnet pack src/TaskReRunner/ArmoniK.TaskReRunner.csproj -c Release -o /tmp/packages -p:PackageVersion=$VERSION -p:Version=$VERSION
+        dotnet pack ${{ matrix.projects }} -c Release -o /tmp/packages -p:PackageVersion=$VERSION -p:Version=$VERSION
 
     - name: Push the package
-      run: dotnet nuget push /tmp/packages/ArmoniK.TaskReRunner.*.nupkg -k ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push /tmp/packages/ArmoniK.*.nupkg -k ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
