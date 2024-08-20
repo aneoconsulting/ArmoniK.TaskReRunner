@@ -65,7 +65,7 @@ jobs:
           - "--name testNameOnly.json"
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
           ref: ${{ github.ref }}
 
@@ -78,7 +78,7 @@ jobs:
             aws: true
 
       - name: Checkout Infra
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
             repository: aneoconsulting/ArmoniK
             path: infra
@@ -90,15 +90,18 @@ jobs:
             working-directory: ${{ github.workspace }}/infra
             type: localhost
             ext-csharp-version: 0.18.0
-            core-version: 0.24.3
+            core-version: 0.25.0-jgpayloaddeletion.15.2535db86
          
       - name: Run HtcMock Client
         run: |
          export CPIP=$(kubectl get svc control-plane -n armonik -o custom-columns="IP:.spec.clusterIP" --no-headers=true)
          export CPPort=$(kubectl get svc control-plane -n armonik -o custom-columns="PORT:.spec.ports[*].port" --no-headers=true)
          export Grpc__Endpoint=http://$CPIP:$CPPort
-
-         docker run --rm -e HtcMock__NTasks=100 -e HtcMock__TotalCalculationTime=00:00:00.100 -e HtcMock__DataSize=1 -e HtcMock__MemorySize=1 -e HtcMock__EnableFastCompute=true -e HtcMock__SubTasksLevels=4 -e HtcMock__Partition=htcmock -e HtcMock__TaskError="6" -e GrpcClient__Endpoint=$Grpc__Endpoint dockerhubaneo/armonik_core_htcmock_test_client:0.24.3 || true
+         echo "CPPort=$CPPort" >> $GITHUB_ENV
+         echo "CPIP=$CPIP" >> $GITHUB_ENV
+         echo "Grpc__Endpoint=$Grpc__Endpoint" >> $GITHUB_ENV
+         
+         docker run --rm -e HtcMock__NTasks=100 -e HtcMock__TotalCalculationTime=00:00:00.100 -e HtcMock__DataSize=1 -e HtcMock__MemorySize=1 -e HtcMock__EnableFastCompute=true -e HtcMock__SubTasksLevels=4 -e HtcMock__Partition=htcmock -e HtcMock__TaskError="6" -e GrpcClient__Endpoint=$Grpc__Endpoint dockerhubaneo/armonik_core_htcmock_test_client:0.25.0-jgpayloaddeletion.15.2535db86 || true
 
       - name: Retrieve TaskID
         run: |
@@ -110,15 +113,14 @@ jobs:
          pip install build
          python -m build
          pip install dist/*.whl
-         export SESSIONID=$(armonik_admin_cli --endpoint 192.168.241.245:5001 list-session --all | sed -n 's/Session ID: //p')
-         export TASKID=$(armonik_admin_cli --endpoint 192.168.241.245:5001 list-task $SESSIONID --error | head -n 1 | awk '{print $3}')
-         
+         export SESSIONID=$(armonik_admin_cli --endpoint ${{ env.CPIP }}:${{ env.CPPort }} list-session --all | sed -n 's/Session ID: //p')
+         export TASKID=$(armonik_admin_cli --endpoint ${{ env.CPIP }}:${{ env.CPPort }} list-task $SESSIONID --error | head -n 1 | awk '{print $3}')
+         echo "taskId=$TASKID" >> $GITHUB_ENV
+
       - name: Run TaskDumper
+        working-directory: src/TaskDumper
         run: |
-         ls src
-         ls src/TaskDumper
-         pwd
-         dotnet run --endpoint $Grpc__Endpoint --taskID $TASKID --project src/TaskDumper/TaskDumper.csproj
+          dotnet run --endpoint ${{ env.Grpc__Endpoint }} --taskId ${{ env.taskId }}
 
   publish-nuget:
     strategy:
