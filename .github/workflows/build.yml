@@ -41,16 +41,83 @@ jobs:
 
     - name: Run tests
       run: |
-        cd test/ArmoniK.TaskReRunner.Test/
+        cd test/ReRunnerAgentTest/
         dotnet test --logger "trx;LogFileName=test-results.trx" -p:RunAnalyzers=false -p:WarningLevel=0
 
     - name: Test Report
       uses: dorny/test-reporter@v1
       if: success() || failure()
       with:
-        name: Test - ubuntu test/ArmoniK.TaskReRunner.Test/
-        path: test/ArmoniK.TaskReRunner.Test/TestResults/test-results.trx
+        name: Test - ubuntu test/ReRunnerAgentTest/
+        path: test/ReRunnerAgentTest/TestResults/test-results.trx
         reporter: dotnet-trx
+ 
+  testTaskDumper:
+    runs-on: ubuntu-latest
+    needs:
+      - versionning
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - "--taskId aGoodOne --dataFolder /tmp/test --name testAllValid.json"
+          - "--taskId aGoodOne"
+          - "--taskId aGoodOne --name testNameOnly.json"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Install Dependencies
+        uses: aneoconsulting/ArmoniK.Action.Deploy/dependencies@main
+        with:
+            docker: true
+            terraform: true
+            k3s: true
+            aws: true
+
+      - name: Checkout Infra
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        with:
+            repository: aneoconsulting/ArmoniK
+            path: infra
+
+      - id: deploy
+        name: Deploy
+        uses: aneoconsulting/ArmoniK.Action.Deploy/deploy@main
+        with:
+            working-directory: ${{ github.workspace }}/infra
+            type: localhost
+            ext-csharp-version: 0.18.0
+            core-version: 0.24.3
+         
+      - name: Run HtcMock Client
+        run: |
+         export CPIP=$(kubectl get svc control-plane -n armonik -o custom-columns="IP:.spec.clusterIP" --no-headers=true)
+         export CPPort=$(kubectl get svc control-plane -n armonik -o custom-columns="PORT:.spec.ports[*].port" --no-headers=true)
+         export Grpc__Endpoint=http://$CPIP:$CPPort
+
+         docker run --rm             -e HtcMock__NTasks=100             -e HtcMock__TotalCalculationTime=00:00:00.100             -e HtcMock__DataSize=1             -e HtcMock__MemorySize=1             -e HtcMock__EnableFastCompute=true             -e HtcMock__SubTasksLevels=4             -e HtcMock__Partition=htcmock       -e HtcMock__TaskError="6"     -e GrpcClient__Endpoint=$Grpc__Endpoint
+         dockerhubaneo/armonik_core_htcmock_test_client:${{ needs.versionning.outputs.version }}
+
+      - name: Retrieve TaskID
+        run: |
+        apt install python3-venv
+        git clone git@github.com:aneoconsulting/ArmoniK.Admin.CLI.git
+        cd ArmoniK.Admin.CLI
+        python -m venv ./venv
+        source ./venv/bin/activate
+        pip install build
+        python -m build
+        pip install dist/*.whl
+        export SESSIONID=$(armonik_admin_cli --endpoint 192.168.241.245:5001 list-session --all | sed -n 's/Session ID: //p')
+        export TASKID=$(armonik_admin_cli --endpoint 192.168.241.245:5001 list-task $SESSIONID --error | head -n 1 | awk '{print $3}')
+         
+      - name: Run TaskDumper
+        run: |
+        cd src/TaskDumper
+        dotnet run --endpoint $Grpc__Endpoint --taskID $TASKID 
 
   publish-nuget:
     strategy:
