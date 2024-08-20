@@ -98,8 +98,7 @@ jobs:
          export CPPort=$(kubectl get svc control-plane -n armonik -o custom-columns="PORT:.spec.ports[*].port" --no-headers=true)
          export Grpc__Endpoint=http://$CPIP:$CPPort
 
-         docker run --rm             -e HtcMock__NTasks=100             -e HtcMock__TotalCalculationTime=00:00:00.100             -e HtcMock__DataSize=1             -e HtcMock__MemorySize=1             -e HtcMock__EnableFastCompute=true             -e HtcMock__SubTasksLevels=4             -e HtcMock__Partition=htcmock       -e HtcMock__TaskError="6"     -e GrpcClient__Endpoint=$Grpc__Endpoint
-         dockerhubaneo/armonik_core_htcmock_test_client:${{ needs.versionning.outputs.version }}
+         docker run --rm             -e HtcMock__NTasks=100             -e HtcMock__TotalCalculationTime=00:00:00.100             -e HtcMock__DataSize=1             -e HtcMock__MemorySize=1             -e HtcMock__EnableFastCompute=true             -e HtcMock__SubTasksLevels=4             -e HtcMock__Partition=htcmock       -e HtcMock__TaskError="6"     -e GrpcClient__Endpoint=$Grpc__Endpoint dockerhubaneo/armonik_core_htcmock_test_client:${{ needs.versionning.outputs.version }}
 
       - name: Retrieve TaskID
         run: |
