@@ -102,7 +102,7 @@ jobs:
 
       - name: Retrieve TaskID
         run: |
-         apt install python3-venv
+         sudo apt install python3-venv
          git clone git@github.com:aneoconsulting/ArmoniK.Admin.CLI.git
          cd ArmoniK.Admin.CLI
          python -m venv ./venv
