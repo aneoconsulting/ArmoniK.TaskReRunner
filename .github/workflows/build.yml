@@ -103,21 +103,21 @@ jobs:
 
       - name: Retrieve TaskID
         run: |
-        apt install python3-venv
-        git clone git@github.com:aneoconsulting/ArmoniK.Admin.CLI.git
-        cd ArmoniK.Admin.CLI
-        python -m venv ./venv
-        source ./venv/bin/activate
-        pip install build
-        python -m build
-        pip install dist/*.whl
-        export SESSIONID=$(armonik_admin_cli --endpoint 192.168.241.245:5001 list-session --all | sed -n 's/Session ID: //p')
-        export TASKID=$(armonik_admin_cli --endpoint 192.168.241.245:5001 list-task $SESSIONID --error | head -n 1 | awk '{print $3}')
+         apt install python3-venv
+         git clone git@github.com:aneoconsulting/ArmoniK.Admin.CLI.git
+         cd ArmoniK.Admin.CLI
+         python -m venv ./venv
+         source ./venv/bin/activate
+         pip install build
+         python -m build
+         pip install dist/*.whl
+         export SESSIONID=$(armonik_admin_cli --endpoint 192.168.241.245:5001 list-session --all | sed -n 's/Session ID: //p')
+         export TASKID=$(armonik_admin_cli --endpoint 192.168.241.245:5001 list-task $SESSIONID --error | head -n 1 | awk '{print $3}')
          
       - name: Run TaskDumper
         run: |
-        cd src/TaskDumper
-        dotnet run --endpoint $Grpc__Endpoint --taskID $TASKID 
+         cd src/TaskDumper
+         dotnet run --endpoint $Grpc__Endpoint --taskID $TASKID 
 
   publish-nuget:
     strategy:
