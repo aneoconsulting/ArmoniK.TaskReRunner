@@ -60,9 +60,9 @@ jobs:
       fail-fast: false
       matrix:
         scenario:
-          - "--taskId aGoodOne --dataFolder /tmp/test --name testAllValid.json"
-          - "--taskId aGoodOne"
-          - "--taskId aGoodOne --name testNameOnly.json"
+          - "--dataFolder /tmp/test --name testAllValid.json"
+          - ""
+          - "--name testNameOnly.json"
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
