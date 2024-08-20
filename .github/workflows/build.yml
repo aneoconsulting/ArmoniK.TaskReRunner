@@ -115,8 +115,7 @@ jobs:
          
       - name: Run TaskDumper
         run: |
-         cd src/TaskDumper
-         dotnet run --endpoint $Grpc__Endpoint --taskID $TASKID 
+         dotnet run --endpoint $Grpc__Endpoint --taskID $TASKID --project src/TaskDumper/TaskDumper.csproj
 
   publish-nuget:
     strategy:
