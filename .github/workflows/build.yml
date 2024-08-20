@@ -115,6 +115,7 @@ jobs:
          
       - name: Run TaskDumper
         run: |
+         ls
          pwd
          dotnet run --endpoint $Grpc__Endpoint --taskID $TASKID --project src/TaskDumper/TaskDumper.csproj
 
