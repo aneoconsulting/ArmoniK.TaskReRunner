@@ -31,8 +31,6 @@ using ArmoniK.Api.gRPC.V1.Worker;
 
 using Microsoft.Extensions.Configuration;
 
-using TaskStatus = ArmoniK.Api.gRPC.V1.TaskStatus;
-
 namespace ArmoniK.TaskDumper;
 
 internal static class Program
@@ -124,7 +122,11 @@ internal static class Program
     }
 
     // Save Payload data to a file in the dataFolder named <PayloadID>.
-    if (taskResponse.Task.Status != TaskStatus.Completed)
+    var payload = resultClient.GetResult(new GetResultRequest
+                                         {
+                                           ResultId = taskResponse.Task.PayloadId,
+                                         });
+    if (payload.Result.Status != ResultStatus.Deleted)
     {
       await File.WriteAllBytesAsync(Path.Combine(dataFolder,
                                                  taskResponse.Task.PayloadId),
