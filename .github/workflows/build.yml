@@ -101,7 +101,7 @@ jobs:
          echo "CPIP=$CPIP" >> $GITHUB_ENV
          echo "Grpc__Endpoint=$Grpc__Endpoint" >> $GITHUB_ENV
          
-         docker run --rm -e HtcMock__NTasks=100 -e HtcMock__TotalCalculationTime=00:00:00.100 -e HtcMock__DataSize=1 -e HtcMock__MemorySize=1 -e HtcMock__EnableFastCompute=true -e HtcMock__SubTasksLevels=4 -e HtcMock__Partition=htcmock -e HtcMock__TaskError="6" -e GrpcClient__Endpoint=$Grpc__Endpoint dockerhubaneo/armonik_core_htcmock_test_client:0.25.0-jgpayloaddeletion.15.2535db86 || true
+         docker run --rm -e HtcMock__NTasks=100 -e HtcMock__TotalCalculationTime=00:00:00.100 -e HtcMock__DataSize=1 -e HtcMock__MemorySize=1  -e HtcMock__PurgeData=false -e HtcMock__EnableFastCompute=true -e HtcMock__SubTasksLevels=4 -e HtcMock__Partition=htcmock -e HtcMock__TaskError="6" -e GrpcClient__Endpoint=$Grpc__Endpoint dockerhubaneo/armonik_core_htcmock_test_client:$(jq -r ".armonik_versions.core" infra/versions.tfvars.json) || true
 
       - name: Retrieve TaskID
         run: |
@@ -121,6 +121,7 @@ jobs:
         working-directory: src/TaskDumper
         run: |
           dotnet run --endpoint ${{ env.Grpc__Endpoint }} --taskId ${{ env.taskId }}
+
 
   publish-nuget:
     strategy:
