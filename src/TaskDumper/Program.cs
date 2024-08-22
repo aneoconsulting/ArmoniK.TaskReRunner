@@ -128,6 +128,9 @@ internal static class Program
                                          });
     if (payload.Result.Status != ResultStatus.Deleted)
     {
+      Console.WriteLine(await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                              taskResponse.Task.PayloadId,
+                                                              CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
       await File.WriteAllBytesAsync(Path.Combine(dataFolder,
                                                  taskResponse.Task.PayloadId),
                                     await resultClient.DownloadResultData(taskResponse.Task.SessionId,
@@ -161,7 +164,7 @@ internal static class Program
 
     var dataFolder = new Option<string>("--dataFolder",
                                         description: "The absolute path to the folder for storing binary data required to rerun a task.",
-                                        getDefaultValue: () => Path.GetTempPath());
+                                        getDefaultValue: () => Path.GetTempPath() + "binaries" + Path.DirectorySeparatorChar);
 
     var name = new Option<string>("--name",
                                   description: "The name of the JSON file to be created.",

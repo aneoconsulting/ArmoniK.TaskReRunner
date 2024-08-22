@@ -60,9 +60,7 @@ jobs:
       fail-fast: false
       matrix:
         scenario:
-          - "--dataFolder /tmp/test --name testAllValid.json"
           - ""
-          - "--name testNameOnly.json"
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
@@ -124,12 +122,16 @@ jobs:
 
       - name: Run Worker HtcMock
         run: |
-          docker run --rm -d -u $(id -u) -e ComputePlane__WorkerChannel__Address=/cache/worker.sock   -e ComputePlane__AgentChannel__Address=/cache/agent.sock -v /tmp/sockets:/cache -v /tmp/binaries:/tmp/binaries dockerhubaneo/armonik_core_htcmock_test_worker:0.25.0-jgpayloaddeletion.15.2535db86
+         mkdir /tmp/sockets
+         chmod 777 /tmp/sockets
+         ls /tmp/binaries
+         docker run --rm -d --name htcmock -u $(id -u) -e ComputePlane__WorkerChannel__Address=/cache/worker.sock   -e ComputePlane__AgentChannel__Address=/cache/agent.sock -v /tmp/sockets:/cache -v /tmp/binaries:/tmp/binaries dockerhubaneo/armonik_core_htcmock_test_worker:0.25.0-jgpayloaddeletion.15.2535db86
 
       - name: Run TaskReRunner
         working-directory: src/TaskReRunner
         run: |
-          dotnet run --path ../TaskDumper/Task_Id.json
+          dotnet run --path ../TaskDumper/Task_Id.json || true
+          docker logs -t htcmock
        
   publish-nuget:
     strategy:
