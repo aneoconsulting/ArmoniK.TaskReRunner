@@ -122,7 +122,15 @@ jobs:
         run: |
           dotnet run --endpoint ${{ env.Grpc__Endpoint }} --taskId ${{ env.taskId }}
 
+      - name: Run Worker HtcMock
+        run: |
+          docker run --rm -d -u $(id -u) -e ComputePlane__WorkerChannel__Address=/cache/worker.sock   -e ComputePlane__AgentChannel__Address=/cache/agent.sock -v /tmp/sockets:/cache -v /tmp/binaries:/tmp/binaries dockerhubaneo/armonik_core_htcmock_test_worker:0.25.0-jgpayloaddeletion.15.2535db86
 
+      - name: Run TaskReRunner
+        working-directory: src/TaskReRunner
+        run: |
+          dotnet run --path ../TaskDumper/Task_Id.json
+       
   publish-nuget:
     strategy:
       matrix:
