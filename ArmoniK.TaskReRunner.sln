@@ -9,10 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmoniK.TaskDumper", "src\T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReRunnerAgentTest", "test\ReRunnerAgentTest\ReRunnerAgentTest.csproj", "{FDB4866A-65A0-4396-BC98-737812965555}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskReRunnerIntegrationTest", "test\TaskReRunnerIntegrationTest\TaskReRunnerIntegrationTest.csproj", "{78F65F0C-7A05-44C0-BF31-C51A06335394}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskDumperIntegrationTest", "test\TaskDumperIntegrationTest\TaskDumperIntegrationTest.csproj", "{624CE879-0B8D-402B-89A3-77EDA6156760}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

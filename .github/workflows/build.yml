@@ -129,7 +129,7 @@ jobs:
       - name: Run TaskReRunner
         working-directory: src/TaskReRunner
         run: |
-          dotnet run --path ../TaskDumper/Task_Id.json || true
+          dotnet run --path ../TaskDumper/Task_Id.json
        
   publish-nuget:
     strategy:
