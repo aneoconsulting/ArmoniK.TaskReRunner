@@ -31,8 +31,6 @@ using ArmoniK.Api.gRPC.V1.Worker;
 
 using Microsoft.Extensions.Configuration;
 
-using TaskStatus = ArmoniK.Api.gRPC.V1.TaskStatus;
-
 namespace ArmoniK.TaskDumper;
 
 internal static class Program
@@ -124,8 +122,15 @@ internal static class Program
     }
 
     // Save Payload data to a file in the dataFolder named <PayloadID>.
-    if (taskResponse.Task.Status != TaskStatus.Completed)
+    var payload = resultClient.GetResult(new GetResultRequest
+                                         {
+                                           ResultId = taskResponse.Task.PayloadId,
+                                         });
+    if (payload.Result.Status != ResultStatus.Deleted)
     {
+      Console.WriteLine(await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                              taskResponse.Task.PayloadId,
+                                                              CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
       await File.WriteAllBytesAsync(Path.Combine(dataFolder,
                                                  taskResponse.Task.PayloadId),
                                     await resultClient.DownloadResultData(taskResponse.Task.SessionId,
@@ -159,7 +164,7 @@ internal static class Program
 
     var dataFolder = new Option<string>("--dataFolder",
                                         description: "The absolute path to the folder for storing binary data required to rerun a task.",
-                                        getDefaultValue: () => Path.GetTempPath());
+                                        getDefaultValue: () => Path.GetTempPath() + "binaries" + Path.DirectorySeparatorChar);
 
     var name = new Option<string>("--name",
                                   description: "The name of the JSON file to be created.",

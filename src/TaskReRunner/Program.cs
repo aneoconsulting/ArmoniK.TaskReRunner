@@ -54,7 +54,7 @@ internal static class Program
     // Set up the gRPC channel with the specified address and a null logger for the provider
     var channel = new GrpcChannelProvider(new GrpcChannel
                                           {
-                                            Address = Path.GetTempPath() + "worker.sock",
+                                            Address = Path.GetTempPath() + "sockets" + Path.DirectorySeparatorChar + "worker.sock",
                                           },
                                           new NullLogger<GrpcChannelProvider>()).Get();
     // Create the CommunicationToken
@@ -89,7 +89,7 @@ internal static class Program
     // Scope for the Task to run 
     {
       // Launch an Agent server to listen the worker
-      using var server = new Server("/tmp/agent.sock",
+      using var server = new Server(Path.GetTempPath() + "sockets" + Path.DirectorySeparatorChar + "agent.sock",
                                     storage,
                                     loggerConfiguration_);
 
@@ -145,7 +145,7 @@ internal static class Program
                                   getDefaultValue: () => "Data.json");
     var dataFolder = new Option<string>("--dataFolder",
                                         description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
-                                        getDefaultValue: () => Path.GetTempPath());
+                                        getDefaultValue: () => Path.GetTempPath() + "binaries" + Path.DirectorySeparatorChar);
 
     // Describe the application and its purpose
     var rootCommand =
