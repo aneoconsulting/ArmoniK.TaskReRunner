@@ -13,16 +13,6 @@ You can use your favorite IDE debugger on you worker with the ArmoniK.TaskReRunn
 
 # Installation
 
--  **Clone the GitHub repository**
-
-    Clone the repository and move into it:
-
-    ```sh
-    git clone git@github.com:aneoconsulting/ArmoniK.TaskReRunner.git
-    cd ArmoniK.TaskReRunner
-    ```
-
-Or:
 
 - Install the .Net tool
    _From [nuget.org](https://www.nuget.org/) in command line :_
@@ -30,6 +20,16 @@ Or:
     ```sh
     dotnet tool install -g ArmoniK.TaskReRunner
     ```
+
+Or :
+
+- Clone the repository and move into it.
+
+    ```sh
+    git clone git@github.com:aneoconsulting/ArmoniK.TaskReRunner.git
+    cd ArmoniK.TaskReRunner
+    ```
+
 # Prerequisites
 
 To run the program, you need:
@@ -56,6 +56,21 @@ Replace `<PATH_TO_PROJECT.CSPROJ>` with the path to your .csproj file.
 ### Use the TaskDumper to extract Data from ArmoniK.
 
 Run the TaskDumper program with your **ArmoniK running**.
+
+- With the .Net tool :
+
+Install the .Net tool
+   _From [nuget.org](https://www.nuget.org/) in command line :_
+
+```sh
+dotnet tool install -g ArmoniK.TaskDumper
+```
+
+```sh
+TaskDumper --endpoint <YOUR_ENDPOINT> --taskId <TASK_ID>
+```
+
+- With the cloned repository :
 
 ```sh
 dotnet run --project src/TaskDumper --endpoint <YOUR_ENDPOINT> --taskId <TASK_ID>
