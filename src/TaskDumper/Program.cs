@@ -96,7 +96,7 @@ internal static class Program
     var JSONresult = DumpData.ToString();
 
     // Create the dataFolder directory if it doesn't exist.
-    if (!Directory.Exists(folder))
+    if (!Directory.Exists(folder + Path.DirectorySeparatorChar + "Results"))
     {
       Directory.CreateDirectory(folder + Path.DirectorySeparatorChar + "Results");
     }

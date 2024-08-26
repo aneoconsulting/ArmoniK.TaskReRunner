@@ -37,10 +37,8 @@ internal static class Program
   ///   Connect to a Worker to process tasks with specific process parameter.
   /// </summary>
   /// <param name="path">Path to the json file containing the data needed to rerun the Task.</param>
-  /// <param name="dataFolder">Absolute path to the folder created to contain the binary data required to rerun the Task.</param>
   /// <exception cref="ArgumentException"></exception>
-  public static void Run(string path,
-                         string dataFolder)
+  public static void Run(string path)
   {
     // Create a logger configuration to write output to the console with contextual information.
     var loggerConfiguration_ = new LoggerConfiguration().WriteTo.Console()
@@ -81,7 +79,6 @@ internal static class Program
     }
 
     // Set the dataFolder 
-    input.DataFolder = dataFolder;
 
     // Create an AgentStorage to keep the Agent Data After Process
     var storage = new AgentStorage();
@@ -113,7 +110,7 @@ internal static class Program
       logger_.LogInformation("Notified result{i} Id: {res}",
                              i,
                              result);
-      var byteArray = File.ReadAllBytes(Path.Combine(dataFolder,
+      var byteArray = File.ReadAllBytes(Path.Combine(input.DataFolder,
                                                      result));
       logger_.LogInformation("Notified result{i} Data : {str}",
                              i,
@@ -142,22 +139,17 @@ internal static class Program
     // Define the options for the application with their description and default value
     var path = new Option<string>("--path",
                                   description: "Path to the json file containing the data needed to rerun the Task.",
-                                  getDefaultValue: () => "Data.json");
-    var dataFolder = new Option<string>("--dataFolder",
-                                        description: "Absolute path to the folder created to contain the binary data required to rerun the Task.",
-                                        getDefaultValue: () => Path.GetTempPath() + "binaries" + Path.DirectorySeparatorChar);
+                                  getDefaultValue: () => "task.json");
 
     // Describe the application and its purpose
     var rootCommand =
       new RootCommand("This application allows you to rerun ArmoniK individual task in local. It reads the data in <path>, connect to a worker and rerun the Task.");
 
     rootCommand.AddOption(path);
-    rootCommand.AddOption(dataFolder);
 
     // Configure the handler to call the function that will do the work
     rootCommand.SetHandler(Run,
-                           path,
-                           dataFolder);
+                           path);
 
     // Parse the command line parameters and call the function that represents the application
     return await rootCommand.InvokeAsync(args);
