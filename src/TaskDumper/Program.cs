@@ -41,7 +41,6 @@ internal static class Program
   /// <param name="endpoint">The endpoint URL of ArmoniK's control plane.</param>
   /// <param name="taskId">The TaskId of the task to retrieve.</param>
   /// <param name="dataFolder">The folder to store all required binaries.</param>
-  /// <param name="name">The name of the newly created JSON file.</param>
   /// <returns>
   ///   Task representing the asynchronous execution of the method
   /// </returns>
@@ -49,8 +48,7 @@ internal static class Program
   /// <exception cref="ArgumentOutOfRangeException">Unknown response type from control plane</exception>
   internal static async Task Run(string      endpoint,
                                  string      taskId,
-                                 string      dataFolder,
-                                 string      name,
+                                 string?     dataFolder,
                                  GrpcClient? grpcClientOptions)
   {
     Console.WriteLine(grpcClientOptions);
@@ -59,6 +57,7 @@ internal static class Program
                                                                                      Endpoint = endpoint,
                                                                                    });
 
+    var folder = dataFolder ?? Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "ak_dumper_" + taskId;
     // Create clients for tasks and results.
     var taskClient   = new Tasks.TasksClient(channel);
     var resultClient = new Results.ResultsClient(channel);
@@ -90,48 +89,55 @@ internal static class Program
                                        DataChunkMaxSize = resultClient.GetServiceConfiguration(new Empty())
                                                                       .DataChunkMaxSize,
                                      },
-                     PayloadId = taskResponse.Task.PayloadId,
+                     PayloadId  = taskResponse.Task.PayloadId,
+                     DataFolder = folder + Path.DirectorySeparatorChar + "Results",
                    };
     // Convert the ProcessRequest object to JSON.
     var JSONresult = DumpData.ToString();
 
+    // Create the dataFolder directory if it doesn't exist.
+    if (!Directory.Exists(folder))
+    {
+      Directory.CreateDirectory(folder + Path.DirectorySeparatorChar + "Results");
+    }
+
+
     // Write the JSON to a file with the specified name.
-    using (var tw = new StreamWriter(name,
+    using (var tw = new StreamWriter(folder + Path.DirectorySeparatorChar + "task.json",
                                      false))
     {
       await tw.WriteLineAsync(JSONresult);
     }
 
-    // Create the dataFolder directory if it doesn't exist.
-    if (!Directory.Exists(dataFolder))
-    {
-      Directory.CreateDirectory(dataFolder);
-    }
 
-    // Save DataDependencies data to files in the dataFolder named <resultId>.
+    // Save DataDependencies data to files in the folder named <resultId>.
     foreach (var data in taskResponse.Task.DataDependencies)
     {
+      var dataDependency = resultClient.GetResult(new GetResultRequest
+                                                  {
+                                                    ResultId = data,
+                                                  });
       if (!string.IsNullOrEmpty(data))
       {
-        await File.WriteAllBytesAsync(Path.Combine(dataFolder,
-                                                   data),
-                                      await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                                            data,
-                                                                            CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+        if (dataDependency.Result.Status == ResultStatus.Completed)
+        {
+          await File.WriteAllBytesAsync(Path.Combine(folder + Path.DirectorySeparatorChar + "Results",
+                                                     data),
+                                        await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                              data,
+                                                                              CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+        }
       }
     }
 
-    // Save Payload data to a file in the dataFolder named <PayloadID>.
+    // Save Payload data to a file in the folder named <PayloadID>.
     var payload = resultClient.GetResult(new GetResultRequest
                                          {
                                            ResultId = taskResponse.Task.PayloadId,
                                          });
-    if (payload.Result.Status != ResultStatus.Deleted)
+    if (payload.Result.Status == ResultStatus.Completed)
     {
-      Console.WriteLine(await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                              taskResponse.Task.PayloadId,
-                                                              CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
-      await File.WriteAllBytesAsync(Path.Combine(dataFolder,
+      await File.WriteAllBytesAsync(Path.Combine(folder + Path.DirectorySeparatorChar + "Results",
                                                  taskResponse.Task.PayloadId),
                                     await resultClient.DownloadResultData(taskResponse.Task.SessionId,
                                                                           taskResponse.Task.PayloadId,
@@ -162,13 +168,10 @@ internal static class Program
                                     description: "TaskId of the task to retrieve",
                                     getDefaultValue: () => "none");
 
-    var dataFolder = new Option<string>("--dataFolder",
-                                        description: "The absolute path to the folder for storing binary data required to rerun a task.",
-                                        getDefaultValue: () => Path.GetTempPath() + "binaries" + Path.DirectorySeparatorChar);
+    var dataFolder = new Option<string?>("--dataFolder",
+                                         description: "The absolute path to the folder for storing binary data required to rerun a task.",
+                                         getDefaultValue: () => null);
 
-    var name = new Option<string>("--name",
-                                  description: "The name of the JSON file to be created.",
-                                  getDefaultValue: () => "Task_Id.json");
     // Describe the application and its purpose
     var rootCommand = new RootCommand($"A program to extract data for a specific task. Connect to ArmoniK through <{endpoint.Name}>");
 
@@ -179,21 +182,17 @@ internal static class Program
 
     rootCommand.AddOption(dataFolder);
 
-    rootCommand.AddOption(name);
 
     // Configure the handler to call the function that will do the work
     rootCommand.SetHandler((endpointValue,
                             taskIdValue,
-                            dataFolderValue,
-                            nameValue) => Run(endpointValue,
-                                              taskIdValue,
-                                              dataFolderValue,
-                                              nameValue,
-                                              grpcClientOptions),
+                            dataFolderValue) => Run(endpointValue,
+                                                    taskIdValue,
+                                                    dataFolderValue,
+                                                    grpcClientOptions),
                            endpoint,
                            taskId,
-                           dataFolder,
-                           name);
+                           dataFolder);
 
     // Parse the command line parameters and call the function that represents the application
     return await rootCommand.InvokeAsync(args);
