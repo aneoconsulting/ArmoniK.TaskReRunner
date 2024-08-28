@@ -39,18 +39,6 @@ To run the program, you need:
 
 *N.B.: You don't need ArmoniK to rerun a task, but **you can't rerun a task without having already run it through ArmoniK.***
 
-## **Start Your Worker**
-
-**Linux** with the sockets path `ComputePlane__WorkerChannel__Address=/tmp/worker.sock` and `ComputePlane__AgentChannel__Address=/tmp/agent.sock`.
-
-- Here is a command line example to run a C# worker with the correct sockets:
-
-    ```sh
-    ComputePlane__WorkerChannel__Address=/tmp/worker.sock ComputePlane__AgentChannel__Address=/tmp/agent.sock dotnet run --project <PATH_TO_PROJECT.CSPROJ>
-    ```
-
-Replace `<PATH_TO_PROJECT.CSPROJ>` with the path to your .csproj file.
-
 ## Obtain Data in Json
 
 ### Use the TaskDumper to extract Data from ArmoniK.
@@ -85,14 +73,12 @@ Replace `<TASK_ID>` with TaskId of the task to retrieve.
 - `--endpoint`: Endpoint for the connection to ArmoniK control plane.
 - `--taskId`: TaskId of the task to retrieve.
 - `--dataFolder`: Absolute path to the folder that will contain the binary data required to rerun the task.
-- `--name`: The name of the JSON file to be created.
 
 ### Default Flag Values
 
 - `--endpoint`: "http://localhost:5001".
 - `--taskId`: "none".
-- `--dataFolder`: The system temporary directory, for example, `/tmp` on Unix-based systems.
-- `--name`: "".
+- `--dataFolder`: The current directory + "ak_dumper_" + taskId. Example : " /mnt/c/Users/ereali/source/repos/ak_dumper_2bc1bd28-9082-45fd-9390-ac713682e038".
 
 ## Debug Without Extracting Directly from ArmoniK
 
@@ -112,6 +98,7 @@ Here is a minimalist JSON with only the necessary variables for the HelloWorld S
     "expectedOutputKeys": [
         "8cdc1510-2240-488e-bd5f-4df0969ef5e9"
     ],
+    "dataFolder": "/mnt/c/Users/ereali/source/repos/ak_dumper_2bc1bd28-9082-45fd-9390-ac713682e038/Results",
     "configuration": {}
 }
 ```
@@ -121,15 +108,54 @@ Here is a minimalist JSON with only the necessary variables for the HelloWorld S
 - The payload data needs to be in a file named after the `<PAYLOAD_ID>`. This `<PAYLOAD_ID>` will be put in the `PayloadId` section of your JSON.
 - The data dependencies need to be in files named after each `<DATADEPENDENCIE_ID>`. These `<DATADEPENDENCIE_ID>` will be put in the `DataDependencies` section of your JSON.
 
-Create those files in the same folder.
+Create these files in the same folder and set its path in the **dataFolder** field of the JSON file.
 
 Tree Example :
 
 ```
-├── tmp
+ak_dumper_2bc1bd28-9082-45fd-9390-ac713682e038
+├── Results
     ├── PAYLOAD_ID
     └── DATADEPENDENCIE_ID
 ```
+
+
+## **Start Your Worker**
+
+Create a directory with write access fot sockets.
+
+```bash
+mkdir /tmp/sockets
+chmod 777 /tmp/sockets
+```
+
+**Linux** with the sockets path `ComputePlane__WorkerChannel__Address=/tmp/sockets/worker.sock` and `ComputePlane__AgentChannel__Address=/tmp/sockets/agent.sock`.
+
+  Here is a command line example to run a C# worker with the correct sockets:
+
+```sh
+ComputePlane__WorkerChannel__Address=/tmp/sockets/worker.sock \
+ComputePlane__AgentChannel__Address=/tmp/sockets/agent.sock \
+dotnet run --project <PATH_TO_PROJECT.CSPROJ>
+```
+
+Replace `<PATH_TO_PROJECT.CSPROJ>` with the path to your .csproj file.
+
+**Docker** 
+  Htcmock through docker:
+
+```sh
+docker run --rm -d --name htcmock -u $(id -u) \
+-e ComputePlane__WorkerChannel__Address=/cache/worker.sock \
+-e ComputePlane__AgentChannel__Address=/cache/agent.sock \
+-v /tmp/sockets:/cache -v <PATH_TO_BINARIES>:<PATH_TO_BINARIES> \
+dockerhubaneo/armonik_core_htcmock_test_worker:<ARMONIK_VERSION_CORE>
+```
+
+Replace `<PATH_TO_BINARIES>` with the path to the extracted binary files.
+
+Replace `<ARMONIK_VERSION>` with the [current core version](https://github.com/aneoconsulting/ArmoniK/blob/main/versions.tfvars.json).
+
 
 # Usage
 
@@ -138,13 +164,13 @@ Tree Example :
 To rerun a single task, use the `dotnet run` command and provide the path of the JSON file containing task data as an argument:
 
 ```sh
-dotnet run --path <DATA.JSON> --dataFolder <PATH_TO_FOLDER> --project src/TaskReRunner/
+dotnet run --path <DATA.JSON> --project src/TaskReRunner/
 ```
 
 or with the .Net tool :
 
 ```sh
-TaskReRunner --path <DATA.JSON> --dataFolder <PATH_TO_FOLDER>
+TaskReRunner --path <DATA.JSON>
 ```
 
 Replace `<DATA.JSON>` with the path to your JSON file.
@@ -154,12 +180,10 @@ Replace `<PATH_TO_FOLDER>` with the absolute path to your folder containing `Pay
 ## Flags
 
 - `--path`: Path to the JSON file containing the data needed to rerun the task.
-- `--dataFolder`: Absolute path to the folder that will contain the binary data required to rerun the task.
 
 ### Default Flag Values
 
-- `--path`: "Task_Id.json".
-- `--dataFolder`: Your temporary user directory, for example, on Linux, `/tmp/`.
+- `--path`: "task.json".
 
 ----
 
