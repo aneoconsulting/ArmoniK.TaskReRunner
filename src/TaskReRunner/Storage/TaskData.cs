@@ -16,6 +16,8 @@
 
 using System.Collections.Generic;
 
+using ArmoniK.Api.gRPC.V1;
+
 namespace ArmoniK.TaskReRunner.Storage;
 
 /// <summary>
@@ -43,4 +45,6 @@ public record TaskData
   ///   Gets the list of expected output keys.
   /// </summary>
   public ICollection<string> ExpectedOutputKeys { get; init; } = new List<string>();
+
+  public TaskOptions TaskOptions { get; init; }
 }

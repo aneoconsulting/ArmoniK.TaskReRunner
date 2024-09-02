@@ -185,6 +185,7 @@ public class ReRunnerAgent : Agent.AgentBase
                                                                       ExpectedOutputKeys = rc.ExpectedOutputKeys,
                                                                       PayloadId          = rc.PayloadId,
                                                                       TaskId             = taskId,
+                                                                      TaskOptions        = rc.TaskOptions,
                                                                     };
                                                       storage_.Tasks[taskId] = current;
                                                       return current;
