@@ -132,6 +132,16 @@ internal static class Program
       logger_.LogInformation("Submitted Task Data : {task}",
                              task.Value);
     }
+
+    // recover results create a folder taskrerunner
+    // comparer nombres de results
+    // comparer name si name ou id identique comparer binaire de maniere intelligente genre diff
+    // comparer nombre de task creer
+    // comparer payload des task si meme id
+    // mettre dans bon dossier
+    // question est ce que le result Id et task iD peut etre controler via option ?
+    // creer deuxieme json with all get result , get task de la tache rejouer ?
+    // package nuget don't support caps ?
   }
 
   public static async Task<int> Main(string[] args)

@@ -15,9 +15,11 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Concurrent;
 using System.CommandLine;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,10 +28,15 @@ using ArmoniK.Api.Client.Options;
 using ArmoniK.Api.Client.Submitter;
 using ArmoniK.Api.gRPC.V1;
 using ArmoniK.Api.gRPC.V1.Results;
+using ArmoniK.Api.gRPC.V1.SortDirection;
 using ArmoniK.Api.gRPC.V1.Tasks;
 using ArmoniK.Api.gRPC.V1.Worker;
 
 using Microsoft.Extensions.Configuration;
+
+using FilterField = ArmoniK.Api.gRPC.V1.Tasks.FilterField;
+using Filters = ArmoniK.Api.gRPC.V1.Tasks.Filters;
+using FiltersAnd = ArmoniK.Api.gRPC.V1.Tasks.FiltersAnd;
 
 namespace ArmoniK.TaskDumper;
 
@@ -101,14 +108,12 @@ internal static class Program
       Directory.CreateDirectory(folder + Path.DirectorySeparatorChar + "Results");
     }
 
-
     // Write the JSON to a file with the specified name.
     using (var tw = new StreamWriter(folder + Path.DirectorySeparatorChar + "task.json",
                                      false))
     {
       await tw.WriteLineAsync(JSONresult);
     }
-
 
     // Save DataDependencies data to files in the folder named <resultId>.
     foreach (var data in taskResponse.Task.DataDependencies)
@@ -142,6 +147,130 @@ internal static class Program
                                     await resultClient.DownloadResultData(taskResponse.Task.SessionId,
                                                                           taskResponse.Task.PayloadId,
                                                                           CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+    }
+
+    // Found all results createdBy  taskId
+    var taskCreated = await taskClient.ListTasksAsync(new ListTasksRequest
+                                                      {
+                                                        Filters = new Filters
+                                                                  {
+                                                                    Or =
+                                                                    {
+                                                                      new FiltersAnd
+                                                                      {
+                                                                        And =
+                                                                        {
+                                                                          new FilterField
+                                                                          {
+                                                                            FilterString = new FilterString
+                                                                                           {
+                                                                                             Operator = FilterStringOperator.Equal,
+                                                                                             Value    = taskId,
+                                                                                           },
+                                                                            Field = new TaskField
+                                                                                    {
+                                                                                      TaskSummaryField = new TaskSummaryField
+                                                                                                         {
+                                                                                                           Field = TaskSummaryEnumField.CreatedBy,
+                                                                                                         },
+                                                                                    },
+                                                                          },
+                                                                        },
+                                                                      },
+                                                                    },
+                                                                  },
+                                                        Sort = new ListTasksRequest.Types.Sort
+                                                               {
+                                                                 Direction = SortDirection.Asc,
+                                                                 Field = new TaskField
+                                                                         {
+                                                                           TaskSummaryField = new TaskSummaryField
+                                                                                              {
+                                                                                                Field = TaskSummaryEnumField.TaskId,
+                                                                                              },
+                                                                         },
+                                                               },
+                                                        PageSize = 1,
+                                                        Page     = 0,
+                                                      });
+
+    if (!Directory.Exists(folder + Path.DirectorySeparatorChar + "Outputs" + Path.DirectorySeparatorChar + "Results"))
+    {
+      Directory.CreateDirectory(folder + Path.DirectorySeparatorChar + "Outputs" + Path.DirectorySeparatorChar + "Results");
+    }
+
+    var tasks = new ConcurrentDictionary<string, TaskSummary>();
+    foreach (var task in taskCreated.Tasks)
+    {
+      tasks[task.Id] = task;
+    }
+
+    var resultsCreated = await resultClient.ListResultsAsync(new ListResultsRequest
+                                                             {
+                                                               Filters = new Api.gRPC.V1.Results.Filters
+                                                                         {
+                                                                           Or =
+                                                                           {
+                                                                             new Api.gRPC.V1.Results.FiltersAnd
+                                                                             {
+                                                                               And =
+                                                                               {
+                                                                                 new Api.gRPC.V1.Results.FilterField
+                                                                                 {
+                                                                                   FilterString = new FilterString
+                                                                                                  {
+                                                                                                    Operator = FilterStringOperator.Equal,
+                                                                                                    Value    = taskId,
+                                                                                                  },
+                                                                                   Field = new ResultField
+                                                                                           {
+                                                                                             ResultRawField = new ResultRawField
+                                                                                                              {
+                                                                                                                Field = ResultRawEnumField.CreatedBy,
+                                                                                                              },
+                                                                                           },
+                                                                                 },
+                                                                               },
+                                                                             },
+                                                                           },
+                                                                         },
+                                                               Sort = new ListResultsRequest.Types.Sort
+                                                                      {
+                                                                        Direction = SortDirection.Asc,
+                                                                        Field = new ResultField
+                                                                                {
+                                                                                  ResultRawField = new ResultRawField
+                                                                                                   {
+                                                                                                     Field = ResultRawEnumField.ResultId,
+                                                                                                   },
+                                                                                },
+                                                                      },
+                                                               Page     = 0,
+                                                               PageSize = 1,
+                                                             });
+
+    var results = new ConcurrentDictionary<string, ResultRaw>();
+
+    foreach (var result in resultsCreated.Results)
+    {
+      results[result.ResultId] = result;
+      await File.WriteAllBytesAsync(Path.Combine(folder + Path.DirectorySeparatorChar + "Outputs" + Path.DirectorySeparatorChar + "Results",
+                                                 result.ResultId),
+                                    await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                          result.ResultId,
+                                                                          CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+    }
+
+    using (var tw = new StreamWriter(folder + Path.DirectorySeparatorChar + "Outputs" + Path.DirectorySeparatorChar + "Results.json",
+                                     false))
+    {
+      await tw.WriteLineAsync(JsonSerializer.Serialize(results));
+    }
+
+    using (var tw = new StreamWriter(folder + Path.DirectorySeparatorChar + "Outputs" + Path.DirectorySeparatorChar + "Tasks.json",
+                                     false))
+    {
+      await tw.WriteLineAsync(JsonSerializer.Serialize(tasks));
     }
   }
 
@@ -181,7 +310,6 @@ internal static class Program
     rootCommand.AddOption(taskId);
 
     rootCommand.AddOption(dataFolder);
-
 
     // Configure the handler to call the function that will do the work
     rootCommand.SetHandler((endpointValue,
