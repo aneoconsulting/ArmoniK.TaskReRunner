@@ -46,5 +46,8 @@ public record TaskData
   /// </summary>
   public ICollection<string> ExpectedOutputKeys { get; init; } = new List<string>();
 
-  public TaskOptions TaskOptions { get; init; }
+  /// <summary>
+  ///   Get or init the task options.
+  /// </summary>
+  public required TaskOptions TaskOptions { get; init; }
 }

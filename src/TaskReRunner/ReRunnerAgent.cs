@@ -30,6 +30,9 @@ using Microsoft.Extensions.Logging;
 
 namespace ArmoniK.TaskReRunner;
 
+/// <summary>
+///   An heritor of agent class that storethings
+/// </summary>
 public class ReRunnerAgent : Agent.AgentBase
 {
   private readonly ILogger<ReRunnerAgent> logger_;
@@ -185,7 +188,7 @@ public class ReRunnerAgent : Agent.AgentBase
                                                                       ExpectedOutputKeys = rc.ExpectedOutputKeys,
                                                                       PayloadId          = rc.PayloadId,
                                                                       TaskId             = taskId,
-                                                                      TaskOptions        = rc.TaskOptions,
+                                                                      TaskOptions        = request.TaskOptions,
                                                                     };
                                                       storage_.Tasks[taskId] = current;
                                                       return current;
