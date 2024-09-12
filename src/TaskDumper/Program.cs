@@ -329,12 +329,19 @@ internal static class Program
     await foreach (var result in resultsCreated)
     {
       results[result.ResultId] = result;
+      var createdResponse = resultClient.GetResult(new GetResultRequest
+                                                   {
+                                                     ResultId = taskResponse.Task.PayloadId,
+                                                   });
       // Put subtask results in var folder + "Results"
-      await File.WriteAllBytesAsync(Path.Combine(folder + "Results",
-                                                 result.ResultId),
-                                    await resultClient.DownloadResultData(taskResponse.Task.SessionId,
-                                                                          result.ResultId,
-                                                                          CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+      if (createdResponse.Result.Status == ResultStatus.Completed)
+      {
+        await File.WriteAllBytesAsync(Path.Combine(folder + "Results",
+                                                   result.ResultId),
+                                      await resultClient.DownloadResultData(taskResponse.Task.SessionId,
+                                                                            result.ResultId,
+                                                                            CancellationToken.None) ?? Encoding.ASCII.GetBytes(""));
+      }
     }
 
     await File.WriteAllTextAsync(folder + "CreatedResults.json",

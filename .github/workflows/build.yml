@@ -54,6 +54,9 @@ jobs:
  
   testTaskDumper:
     runs-on: ubuntu-latest
+    env:
+      EXT_CSHARP_VERSION: 0.18.0
+      CORE_VERSION: 0.25.0
     needs:
       - versionning
     strategy:
@@ -87,8 +90,8 @@ jobs:
         with:
             working-directory: ${{ github.workspace }}/infra
             type: localhost
-            ext-csharp-version: 0.18.0
-            core-version: 0.25.0
+            ext-csharp-version: ${{ env.EXT_CSHARP_VERSION }}
+            core-version: ${{ env.CORE_VERSION }}
          
       - name: Run HtcMock Client
         run: |
@@ -121,10 +124,11 @@ jobs:
           dotnet run --endpoint ${{ env.Grpc__Endpoint }} --taskId ${{ env.taskId }} --dataFolder /tmp/test
 
       - name: Run Worker HtcMock
+        working-directory: src/TaskReRunner
         run: |
          mkdir /tmp/sockets
          chmod 777 /tmp/sockets
-         docker run --rm -d --name htcmock -u $(id -u) -e ComputePlane__WorkerChannel__Address=/cache/worker.sock   -e ComputePlane__AgentChannel__Address=/cache/agent.sock -v /tmp/sockets:/cache -v  /tmp/Results:/tmp/Results dockerhubaneo/armonik_core_htcmock_test_worker:0.25.0
+         docker run --rm -d --name htcmock -u $(id -u) -e ComputePlane__WorkerChannel__Address=/cache/worker.sock   -e ComputePlane__AgentChannel__Address=/cache/agent.sock -v /tmp/sockets:/cache -v  /tmp/test:/tmp/test -v ${{ github.workspace }}:${{ github.workspace }} dockerhubaneo/armonik_core_htcmock_test_worker:${{ env.CORE_VERSION }}
 
       - name: Run TaskReRunner
         working-directory: src/TaskReRunner
