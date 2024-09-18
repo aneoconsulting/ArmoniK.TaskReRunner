@@ -15,7 +15,6 @@
 // limitations under the License.
 
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace ArmoniK.TaskReRunner.Storage;
 
@@ -27,7 +26,7 @@ public class AgentStorage
   /// <summary>
   ///   The data obtained through the notified result call. This set contains the IDs of the results that have been notified.
   /// </summary>
-  public readonly HashSet<string> NotifiedResults = new();
+  public readonly ConcurrentBag<string> NotifiedResults = new();
 
   /// <summary>
   ///   The data obtained through the CreateResult or CreateMetaDataResult call. This dictionary stores results keyed by
