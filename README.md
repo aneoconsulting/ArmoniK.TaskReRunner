@@ -1,4 +1,4 @@
-# Armonik.Task.ReRunner
+# Armonik.TaskReRunner
 
 This project is part of the [ArmoniK](https://github.com/aneoconsulting/ArmoniK) project.
 Armonik.Task.ReRunner is designed to simplify debugging by allowing users to rerun previously submitted and processed tasks. By providing services to select and re-execute individual tasks, it helps users identify and fix issues, streamlining the overall debugging process.
@@ -12,16 +12,6 @@ You can use your favorite IDE debugger on you worker with the ArmoniK.TaskReRunn
 - **Logging and Monitoring:** Detailed logs and monitoring for each rerun operation to ensure debugging and transparency.
 
 # Installation
-
-
-- Install the .Net tool
-   _From [nuget.org](https://www.nuget.org/) in command line :_
-
-    ```sh
-    dotnet tool install -g ArmoniK.TaskReRunner
-    ```
-
-Or :
 
 - Clone the repository and move into it.
 
@@ -44,19 +34,6 @@ To run the program, you need:
 ### Use the TaskDumper to extract Data from ArmoniK.
 
 Run the TaskDumper program with your **ArmoniK running**.
-
-- With the .Net tool :
-
-Install the .Net tool
-   _From [nuget.org](https://www.nuget.org/) in command line :_
-
-```sh
-dotnet tool install -g ArmoniK.TaskDumper
-```
-
-```sh
-TaskDumper --endpoint <YOUR_ENDPOINT> --taskId <TASK_ID>
-```
 
 - With the cloned repository :
 
@@ -156,7 +133,6 @@ Replace `<PATH_TO_BINARIES>` with the path to the extracted binary files.
 
 Replace `<ARMONIK_VERSION>` with the [current core version](https://github.com/aneoconsulting/ArmoniK/blob/main/versions.tfvars.json).
 
-
 # Usage
 
 ## Rerun a Single Task
@@ -167,12 +143,6 @@ To rerun a single task, use the `dotnet run` command and provide the path of the
 dotnet run --path <DATA.JSON> --project src/TaskReRunner/
 ```
 
-or with the .Net tool :
-
-```sh
-TaskReRunner --path <DATA.JSON>
-```
-
 Replace `<DATA.JSON>` with the path to your JSON file.
 
 Replace `<PATH_TO_FOLDER>` with the absolute path to your folder containing `PayloadId` and `DataDependencies` files.
@@ -180,13 +150,15 @@ Replace `<PATH_TO_FOLDER>` with the absolute path to your folder containing `Pay
 ## Flags
 
 - `--path`: Path to the JSON file containing the data needed to rerun the task.
+- `--force`: Allow the previous output deletion.
 
 ### Default Flag Values
 
 - `--path`: "task.json".
+- `--force`: false.
 
 ----
 
-You can recover your results in `Data_Folder_Path/Expected_Output_Id` or it will be printed on your console as:
-`Notified result0 Data: <DATA_IN_BYTE>`.
+You can recover your results in `<CURRRENT_DIRECTORY>/ak_dumper_<TASK_ID>` or it will be printed on your console as:
+`Notified result0 Data: <DATA_IN_BYTE>`. 
 
