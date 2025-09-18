@@ -24,7 +24,7 @@ You can use your favorite IDE debugger on you worker with the ArmoniK.TaskReRunn
 
 To run the program, you need:
 - To have a task that you want to rerun with its **TaskId**.
-- To have a worker which **failed**.
+- To have a worker.
 - To extract the data from the task you want to rerun in the correct **JSON** format.
 
 *N.B.: You don't need ArmoniK to rerun a task, but **you can't rerun a task without having already run it through ArmoniK.***
