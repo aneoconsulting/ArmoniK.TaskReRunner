@@ -56,7 +56,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EXT_CSHARP_VERSION: 0.18.0
-      CORE_VERSION: 0.25.0
     needs:
       - versionning
     strategy:
@@ -68,6 +67,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
+          ext-csharp-version: ${{ env.EXT_CSHARP_VERSION }}
           ref: ${{ github.ref }}
 
       - name: Install Dependencies
@@ -90,9 +90,11 @@ jobs:
         with:
             working-directory: ${{ github.workspace }}/infra
             type: localhost
-            ext-csharp-version: ${{ env.EXT_CSHARP_VERSION }}
-            core-version: ${{ env.CORE_VERSION }}
-         
+
+      - name: Set CORE_VERSION from JSON
+        run: |
+         echo "CORE_VERSION=$(jq -r '.armonik_versions.core' infra/versions.tfvars.json)" >> $GITHUB_ENV
+ 
       - name: Run HtcMock Client
         run: |
          export CPIP=$(kubectl get svc control-plane -n armonik -o custom-columns="IP:.spec.clusterIP" --no-headers=true)
@@ -109,6 +111,7 @@ jobs:
          sudo apt install python3-venv
          git clone https://github.com/aneoconsulting/ArmoniK.Admin.CLI.git
          cd ArmoniK.Admin.CLI
+         git checkout main_historic
          python -m venv ./venv
          source ./venv/bin/activate
          pip install build

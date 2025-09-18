@@ -201,12 +201,23 @@ internal static class Program
                              task.Value);
     }
 
+    if (File.Exists(copyPath + Path.DirectorySeparatorChar + "CreatedResults.json") == false)
+    {
+      File.WriteAllText(copyPath + Path.DirectorySeparatorChar + "CreatedResults.json",
+                        "{}");
+    }
+
     var jsonString    = File.ReadAllText(copyPath + Path.DirectorySeparatorChar + "CreatedResults.json");
     var resultOutputs = JsonSerializer.Deserialize<ConcurrentDictionary<string, ResultRaw>>(jsonString);
 
+    if (File.Exists(copyPath + Path.DirectorySeparatorChar + "Subtasks.json") == false)
+    {
+      File.WriteAllText(copyPath + Path.DirectorySeparatorChar + "Subtasks.json",
+                        "{}");
+    }
+
     var jsonStringTasks = File.ReadAllText(copyPath + Path.DirectorySeparatorChar + "Subtasks.json");
     var tasksOutputs    = JsonSerializer.Deserialize<ConcurrentDictionary<string, TaskSummary>>(jsonStringTasks);
-
 
     if (resultOutputs!.Count == storage.Results.Count)
     {
@@ -401,7 +412,7 @@ internal static class Program
     // Define the options for the application with their description and default value
     var path = new Option<string>("--path",
                                   description: "Path to the JSON file containing the data needed to rerun the Task.",
-                                  getDefaultValue: () => "task.json");
+                                  getDefaultValue: () => "Task.json");
 
     var force = new Option<bool>("--force",
                                  description: "Allow this program previous output deletion",
