@@ -5,7 +5,7 @@ Armonik.Task.ReRunner is designed to simplify debugging by allowing users to rer
 
 You can use your favorite IDE debugger on you worker with the ArmoniK.TaskReRunner.
 
-# Key Features
+## Key Features
 
 - **Rerun Individual Tasks:** Select and rerun individual ArmoniK tasks by providing their task IDs.
 
@@ -20,7 +20,7 @@ You can use your favorite IDE debugger on you worker with the ArmoniK.TaskReRunn
     cd ArmoniK.TaskReRunner
     ```
 
-# Prerequisites
+## Prerequisites
 
 To run the program, you need:
 - To have a task that you want to rerun with its **TaskId**.
@@ -45,13 +45,13 @@ Replace `<YOUR_ENDPOINT>` with your control_plane_url.
 
 Replace `<TASK_ID>` with TaskId of the task to retrieve.
 
-### Flags
+#### Flags
 
 - `--endpoint`: Endpoint for the connection to ArmoniK control plane.
 - `--taskId`: TaskId of the task to retrieve.
 - `--dataFolder`: Absolute path to the folder that will contain the binary data required to rerun the task.
 
-### Default Flag Values
+#### Default Flag Values
 
 - `--endpoint`: "http://localhost:5001".
 - `--taskId`: "none".
