@@ -56,7 +56,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EXT_CSHARP_VERSION: 0.18.0
-      CORE_VERSION: 0.25.0
     needs:
       - versionning
     strategy:
@@ -91,7 +90,6 @@ jobs:
             working-directory: ${{ github.workspace }}/infra
             type: localhost
             ext-csharp-version: ${{ env.EXT_CSHARP_VERSION }}
-            core-version: ${{ env.CORE_VERSION }}
          
       - name: Run HtcMock Client
         run: |
@@ -102,13 +100,14 @@ jobs:
          echo "CPIP=$CPIP" >> $GITHUB_ENV
          echo "Grpc__Endpoint=$Grpc__Endpoint" >> $GITHUB_ENV
          
-         docker run --rm -e HtcMock__NTasks=100 -e HtcMock__TotalCalculationTime=00:00:00.100 -e HtcMock__DataSize=1 -e HtcMock__MemorySize=1  -e HtcMock__PurgeData=false -e HtcMock__EnableFastCompute=true -e HtcMock__SubTasksLevels=4 -e HtcMock__Partition=htcmock -e HtcMock__TaskError="6" -e GrpcClient__Endpoint=$Grpc__Endpoint dockerhubaneo/armonik_core_htcmock_test_client:$(jq -r ".armonik_versions.core" infra/versions.tfvars.json) || true
+         docker run --rm -e HtcMock__NTasks=100 -e HtcMock__TotalCalculationTime=00:00:00.100 -e HtcMock__DataSize=1 -e HtcMock__MemorySize=1  -e HtcMock__PurgeData=false -e HtcMock__EnableFastCompute=true -e HtcMock__SubTasksLevels=4 -e HtcMock__Partition=htcmock -e HtcMock__TaskError="6" -e GrpcClient__Endpoint=$Grpc__Endpoint dockerhubaneo/armonik_core_htcmock_test_client:$(jq -r ".armonik_versions.core" infra/versions.tfvars.json)  || true
 
       - name: Retrieve TaskID
         run: |
          sudo apt install python3-venv
          git clone https://github.com/aneoconsulting/ArmoniK.Admin.CLI.git
          cd ArmoniK.Admin.CLI
+         git checkout main_historic
          python -m venv ./venv
          source ./venv/bin/activate
          pip install build
@@ -128,13 +127,27 @@ jobs:
         run: |
          mkdir /tmp/sockets
          chmod 777 /tmp/sockets
-         docker run --rm -d --name htcmock -u $(id -u) -e ComputePlane__WorkerChannel__Address=/cache/worker.sock   -e ComputePlane__AgentChannel__Address=/cache/agent.sock -v /tmp/sockets:/cache -v  /tmp/test:/tmp/test -v ${{ github.workspace }}:${{ github.workspace }} dockerhubaneo/armonik_core_htcmock_test_worker:${{ env.CORE_VERSION }}
+         docker run --rm -d --name htcmock -u $(id -u) -e ComputePlane__WorkerChannel__Address=/cache/worker.sock   -e ComputePlane__AgentChannel__Address=/cache/agent.sock -v /tmp/sockets:/cache -v  /tmp/test:/tmp/test -v ${{ github.workspace }}:${{ github.workspace }} dockerhubaneo/armonik_core_htcmock_test_worker:$(jq -r ".armonik_versions.core" ${{ github.workspace }}/infra/versions.tfvars.json) || true
 
       - name: Run TaskReRunner
         working-directory: src/TaskReRunner
         run: |
           dotnet run --path /tmp/test/Task.json
        
+  buildProjects:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      with:
+        ref: ${{ github.ref }}
+
+    - name: Build TaskReRunner
+      run: dotnet build src/TaskReRunner/ArmoniK.TaskReRunner.csproj -c Release -p:RunAnalyzers=false -p:WarningLevel=0
+
+    - name: Build TaskDumper
+      run: dotnet build src/TaskDumper/ArmoniK.TaskDumper.csproj -c Release -p:RunAnalyzers=false -p:WarningLevel=0
+
   publish-nuget:
     strategy:
       matrix:
@@ -145,8 +158,10 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - versionning
+      - buildProjects
     env:
       VERSION: ${{ needs.versionning.outputs.version }}
+      REPOSITORY: ${{ github.repository }}
     steps:
     - name: Checkout
       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
@@ -162,5 +177,6 @@ jobs:
         dotnet pack ${{ matrix.projects }} -c Release -o /tmp/packages -p:PackageVersion=$VERSION -p:Version=$VERSION
 
     - name: Push the package
-      run: dotnet nuget push /tmp/packages/ArmoniK.*.nupkg -k ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      if: ${{ always() && env.REPOSITORY == github.repository }}
+      run: dotnet nuget push /tmp/packages/ArmoniK.*.nupkg --skip-duplicate -k ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
